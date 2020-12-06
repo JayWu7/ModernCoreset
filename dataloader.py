@@ -47,6 +47,7 @@ def loader(filename='Activity recognition exp', specific_file=None):
     return pd.read_csv(filepath)
 
 
-loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+if __name__ == '__main__':
+    loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
 
 
