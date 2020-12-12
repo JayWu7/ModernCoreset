@@ -9,7 +9,7 @@ def initial_cluster(data, k):
     '''
     initialized the centers for K-means++
     inputs:
-        data - numpy array of data points having shape (200, 2)
+        data - numpy array
         k - number of clusters
     '''
     centers = []
