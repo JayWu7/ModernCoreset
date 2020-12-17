@@ -18,7 +18,9 @@ class Points:
         return self.size
 
 
-
+    def fill_points(self, values, weights):
+        self.values = values
+        self.weights = weights
 
 
 

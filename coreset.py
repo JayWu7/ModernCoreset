@@ -1,9 +1,9 @@
 import numpy as np
-
+from cost import compute_kmeans_cost
+from points import Points
 
 def distance(p1, p2):
     return np.sum((p1 - p2) ** 2)
-
 
 def initial_cluster(data, k):
     '''
@@ -38,9 +38,38 @@ def initial_cluster(data, k):
     return centers, centers_indices
 
 
-def compute_coreset(points):
-    # todo
-    pass
+def _compute_sigma_x(points, centers):
+    size = points.shape[0]
+    dist = np.zeros(size)
+    for i in range(size):
+        dist[i] = min(distance(c, data[i]) for c in centers)
+    total_sum = dist.sum()
+    sigma_x = dist / total_sum + 1 / len(centers)
+    return sigma_x
+
+
+def compute_coreset(points, k, N):
+    '''
+    Implement the core algorithm of generation of coreset
+    :param points:weighted points
+    :param k: the amount of initialized centers, caculated by k-means++ method
+    :param N: size of coresets
+    :return: coresets that generated from points
+    '''
+    data_size, dimension = points.shape
+    centers = initial_cluster(points, k)
+    sigma_x = _compute_sigma_x(points, centers)
+    prob_x = sigma_x / sum(sigma_x)
+    samples_idx = np.random.choice(np.arange(data_size), N, p=prob_x)
+    samples = np.take(points, samples_idx)
+    weights = np.take(prob_x, samples_idx)
+    coresets = Points(N, dimension)
+    coresets.fill_points(samples, weights)
+
+    return coresets
+
+
+
 
 
 if __name__ == '__main__':
