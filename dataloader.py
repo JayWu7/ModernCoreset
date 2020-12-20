@@ -3,6 +3,7 @@ import shutil
 import urllib.request as request
 import zipfile
 import pandas as pd
+import numpy as np
 
 # Data list, you can add your data that just follow the same typing forms: name: url
 data_list = {
@@ -44,10 +45,17 @@ def loader(filename='Activity recognition exp', specific_file=None):
     if specific_file:  # When filename is a directory not a data file.
         filename = os.path.join(filename, specific_file)
     filepath = os.path.join('./data', filename)
-    return pd.read_csv(filepath)
+    data = pd.read_csv(filepath)
+    return data.to_numpy()
+
+
+def sample(data, size=1000):
+    sample_idx = np.random.choice(len(data), size=size)
+    return data[sample_idx]
 
 
 if __name__ == '__main__':
-    loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+    data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+    print(sample(data))
 
 
