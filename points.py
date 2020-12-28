@@ -1,13 +1,12 @@
 import numpy as np
-from points import Points
 from sklearn.cluster import KMeans
 
 
-class Point:
-    def __init__(self, value, weight=1):
-        self.value = value
-        self.dimension = len(value)
-        self.weight = weight
+# class Point:
+#     def __init__(self, value, weight=1):
+#         self.value = value
+#         self.dimension = len(value)
+#         self.weight = weight
 
 
 class Points:
@@ -15,7 +14,7 @@ class Points:
         self.size = size
         self.dimension = dimension
         self.values = np.zeros((size, dimension))
-        self.weights = np.ones(size)
+        self.weights = np.ones(size)  # initialize all points weight equal to 1
         self.seed = seed
 
     def __len__(self):
@@ -24,8 +23,12 @@ class Points:
     def set_seed(self, new_seed):
         self.seed = new_seed
 
-    def fill_points(self, values, weights):
+    def fill_points(self, values, weights=None):
         self.values = values
+        if weights is not None:
+            self.set_weights(weights)
+
+    def set_weights(self, weights):
         self.weights = weights
 
     def get_values(self):
@@ -35,5 +38,6 @@ class Points:
         return self.weights
 
     def kmeans_clustering(self, k):
-        kmeans = KMeans(n_clusters=k, random_state=self.seed).fit(self.values, sample_weight=self.weights)
-        return kmeans.cluster_centers_
+        kmeans = KMeans(n_clusters=k, random_state=self.seed, precompute_distances=True).fit(self.values,
+                                                                                             sample_weight=self.weights)
+        return kmeans.cluster_centers_, kmeans.inertia_

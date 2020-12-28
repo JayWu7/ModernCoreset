@@ -40,13 +40,23 @@ def existed_check(filename):
     print('{} check finished!'.format(filename))
 
 
+def data_filter(data):
+    '''
+    Function to filter the original data and discard the none float or integral type columns
+    :param data: input data
+    :return: numerical data after filtering
+    '''
+    numerical_data = data.select_dtypes(include=['float64', 'int64'])
+    return numerical_data
+
 def loader(filename='Activity recognition exp', specific_file=None):
     existed_check(filename)
     if specific_file:  # When filename is a directory not a data file.
         filename = os.path.join(filename, specific_file)
     filepath = os.path.join('./data', filename)
     data = pd.read_csv(filepath)
-    return data.to_numpy()
+    nm_data = data_filter(data)
+    return nm_data.to_numpy()
 
 
 def sample(data, size=1000):

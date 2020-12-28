@@ -65,12 +65,13 @@ def compute_coreset(points, k, N):
     :return: coreset that generated from points
     '''
     data_size, dimension = points.shape
+    assert data_size > N, 'Setting size of coreset is greater or equal to the original data size, please alter it'
     centers, _ = initial_cluster(points, k)
     sigma_x = _compute_sigma_x(points, centers)
     prob_x = sigma_x / sum(sigma_x)
     samples_idx = np.random.choice(np.arange(data_size), N, p=prob_x)
-    samples = np.take(points, samples_idx)
-    weights = np.take(1 / (N * prob_x), samples_idx)
+    samples = np.take(points, samples_idx, axis=0)
+    weights = np.take(1 / (N * prob_x), samples_idx, axis=0)
     coreset = Points(N, dimension)
     coreset.fill_points(samples, weights)
 
