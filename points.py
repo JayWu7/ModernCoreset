@@ -38,6 +38,5 @@ class Points:
         return self.weights
 
     def kmeans_clustering(self, k):
-        kmeans = KMeans(n_clusters=k, random_state=self.seed, precompute_distances=True).fit(self.values,
-                                                                                             sample_weight=self.weights)
+        kmeans = KMeans(n_clusters=k, random_state=self.seed).fit(self.values, sample_weight=self.weights)
         return kmeans.cluster_centers_, kmeans.inertia_

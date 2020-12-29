@@ -16,8 +16,9 @@ def coreset_evaluate_kmeans(data):
     original_points.fill_points(data)
 
     # operate coreset method
-    coreset = compute_coreset(data, 5, 1000)
+    coreset = compute_coreset(data, 5, 10000)
     ori_center, ori_cost = original_points.kmeans_clustering(5)
+
     cor_center, cor_cost = coreset.kmeans_clustering(5)
 
     print('Centers obtained from the original set: {}'.format(ori_center))
@@ -28,7 +29,7 @@ def coreset_evaluate_kmeans(data):
 
 def evaluate_1():
     data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
-    data = sample(data, size=10000)
+    data = sample(data, size=1000000)
     coreset_evaluate_kmeans(data)
 
 

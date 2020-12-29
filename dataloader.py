@@ -66,6 +66,7 @@ def sample(data, size=1000):
 
 if __name__ == '__main__':
     data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+    print(data.shape)
     print(sample(data))
 
 
