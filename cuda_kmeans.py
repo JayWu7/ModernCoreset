@@ -17,10 +17,7 @@ def np2cudf(df):
     return pdf
 
 
-
 def cuml_kmeans():
-    a = np.asarray([[1.0, 1.0], [1.0, 2.0], [3.0, 2.0], [4.0, 3.0]],
-                   dtype=np.float32)
     raw_data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
     data = np2cudf(raw_data)
     print("input:")
