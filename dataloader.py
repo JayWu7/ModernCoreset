@@ -111,19 +111,19 @@ def download_osm(place, admin_level, output_file):
                             params={'data': overpass_query})
     data = response.json()
     coords = []
-    for element in data['elements']:
-        if element['type'] == 'node':
-            lon = element['lon']
-            lat = element['lat']
-            coords.append([lon, lat])
-        elif 'center' in element:
-            lon = element['center']['lon']
-            lat = element['center']['lat']
-            coords.append([lon, lat])
-        with open(output_file, 'a', newline='') as outfile:
-            writer = csv.writer(outfile)
-            for row in coords:
-                writer.writerow(row)
+    with open(output_file, 'w', newline='') as outfile:
+        writer = csv.writer(outfile)
+        for element in tqdm(data['elements']):
+            if element['type'] == 'node':
+                lon = element['lon']
+                lat = element['lat']
+                coords.append([lon, lat])
+            elif 'center' in element:
+                lon = element['center']['lon']
+                lat = element['center']['lat']
+                coords.append([lon, lat])
+                for row in coords:
+                    writer.writerow(row)
 
 
 if __name__ == '__main__':
