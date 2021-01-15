@@ -1,4 +1,5 @@
 # file to store the evaluation code of coreset based method performance in machine learning problem
+import os
 from dataloader import loader, sample
 from points import Points
 from coreset import compute_coreset
@@ -33,5 +34,23 @@ def evaluate_1():
     coreset_evaluate_kmeans(data)
 
 
+def evaluate_2():
+    path = './data/gdelt'
+    points = Points(1, 6)
+    for csv in os.listdir(path=path):
+        data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
+        points.add_points(data)
+    print(points.values.shape)
+
+def evaluate_3():
+    path = './data/gdelt'
+    lengths = 0
+    for csv in os.listdir(path=path):
+        data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
+        lengths += len(data)
+    print(lengths)
+
 if __name__ == '__main__':
-    evaluate_1()
+    # evaluate_1()
+    # evaluate_2()
+    evaluate_3()

@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import requests
 from lxml import etree
+import csv
+from tqdm import tqdm
 
 # Data list, you can add your data that just follow the same typing forms: name: url
 data_list = {
@@ -42,12 +44,13 @@ def existed_check(filename):
     print('{} check finished!'.format(filename))
 
 
-def data_filter(data):
+def data_filter(data, filepath):
     '''
     Function to filter the original data and discard the none float or integral type columns
     :param data: input data
     :return: numerical data after filtering
     '''
+
     numerical_data = data.select_dtypes(include=['float64', 'int64'])
     return numerical_data
 
@@ -57,9 +60,8 @@ def loader(filename='Activity recognition exp', specific_file=None, sep=','):
     if specific_file:  # When filename is a directory not a data file.
         filename = os.path.join(filename, specific_file)
     filepath = os.path.join('./data', filename)
-    print(filepath)
     data = pd.read_csv(filepath, sep=sep)
-    nm_data = data_filter(data)
+    nm_data = data_filter(data, filepath)
     return nm_data.to_numpy()
 
 
@@ -93,6 +95,37 @@ def download_GDELT(url, directory):
     print('Downloading finish!')
 
 
+def download_osm(place, admin_level, output_file):
+    overpass_url = "http://overpass-api.de/api/interpreter"
+    overpass_query = """
+            [out:json];
+            area["ISO3166-1"="{}"][admin_level={}];
+            (node(area);
+            way(area);
+            rel(area);
+            );
+            out center;
+            """.format(place, admin_level)
+
+    response = requests.get(overpass_url,
+                            params={'data': overpass_query})
+    data = response.json()
+    coords = []
+    for element in data['elements']:
+        if element['type'] == 'node':
+            lon = element['lon']
+            lat = element['lat']
+            coords.append([lon, lat])
+        elif 'center' in element:
+            lon = element['center']['lon']
+            lat = element['center']['lat']
+            coords.append([lon, lat])
+        with open(output_file, 'a', newline='') as outfile:
+            writer = csv.writer(outfile)
+            for row in coords:
+                writer.writerow(row)
+
+
 if __name__ == '__main__':
     # data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
     # print(data.shape)
@@ -102,6 +135,7 @@ if __name__ == '__main__':
     # if not os.path.exists(directory):
     #     os.makedirs(directory)
     # download_GDELT(url, directory)
-    data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
-    print(data[:10])
-    print(data.shape)
+    # data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
+    # print(data[:10])
+    # print(data.shape)
+    download_osm('HK', 3, './data/OSM/gb_osm.csv')

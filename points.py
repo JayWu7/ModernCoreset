@@ -24,9 +24,23 @@ class Points:
         self.seed = new_seed
 
     def fill_points(self, values, weights=None):
+        assert values.shape == self.values.shape, 'Please input values with the shape of {}'.format(self.values.shape)
         self.values = values
         if weights is not None:
+            assert weights.shape == self.weights.shape, 'Please input weights with the shape of {}'.format(
+                self.weights.shape)
             self.set_weights(weights)
+
+    def add_points(self, values, weights=None):
+        assert self.values.shape[1] == values.shape[
+            1], 'Please add the points with same dimension {} as current points'.format(self.values.shape[1])
+
+        self.values = np.concatenate([self.values, values], axis=0)
+        if weights is not None:
+            assert len(weights) == len(values), 'The new values and weights are not in the same length.'
+            self.weights = np.concatenate([self.weights, weights], axis=0)
+        else:
+            self.weights = np.concatenate([self.weights, np.ones(len(values))], axis=0)
 
     def set_weights(self, weights):
         self.weights = weights
