@@ -111,19 +111,19 @@ def download_osm(place, admin_level, output_file):
                             params={'data': overpass_query})
     data = response.json()
     coords = []
-    with open(output_file, 'w', newline='') as outfile:
-        writer = csv.writer(outfile)
-        for element in tqdm(data['elements']):
-            if element['type'] == 'node':
-                lon = element['lon']
-                lat = element['lat']
-                coords.append([lon, lat])
-            elif 'center' in element:
-                lon = element['center']['lon']
-                lat = element['center']['lat']
-                coords.append([lon, lat])
-                for row in coords:
-                    writer.writerow(row)
+    for element in tqdm(data['elements']):
+        if element['type'] == 'node':
+            lon = element['lon']
+            lat = element['lat']
+            coords.append([lon, lat])
+        elif 'center' in element:
+            lon = element['center']['lon']
+            lat = element['center']['lat']
+            coords.append([lon, lat])
+        with open(output_file, 'a', newline='') as outfile:
+            writer = csv.writer(outfile)
+            for row in coords:
+                writer.writerow(row)
 
 
 if __name__ == '__main__':
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     # data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
     # print(data[:10])
     # print(data.shape)
-    download_osm('HK', 3, './data/OSM/gb_osm.csv')
+    download_osm('HK', 3, './data1/OSM1/gb_osm.csv')
