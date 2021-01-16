@@ -8,6 +8,7 @@ import requests
 from lxml import etree
 import csv
 from tqdm import tqdm
+import numpy as np
 
 # Data list, you can add your data that just follow the same typing forms: name: url
 data_list = {
@@ -109,6 +110,7 @@ def download_osm(place, admin_level, output_file):
 
     response = requests.get(overpass_url,
                             params={'data': overpass_query})
+    print(response.text)
     data = response.json()
     coords = []
     for element in tqdm(data['elements']):
@@ -120,10 +122,10 @@ def download_osm(place, admin_level, output_file):
             lon = element['center']['lon']
             lat = element['center']['lat']
             coords.append([lon, lat])
-        with open(output_file, 'a', newline='') as outfile:
-            writer = csv.writer(outfile)
-            for row in coords:
-                writer.writerow(row)
+    with open(output_file, 'a', newline='') as outfile:
+        writer = csv.writer(outfile)
+        for row in tqdm(coords):
+            writer.writerow(row)
 
 
 if __name__ == '__main__':
@@ -138,4 +140,4 @@ if __name__ == '__main__':
     # data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
     # print(data[:10])
     # print(data.shape)
-    download_osm('HK', 3, './data1/OSM1/gb_osm.csv')
+    download_osm('GB', 2, './data/OSM/de_osm.csv')
