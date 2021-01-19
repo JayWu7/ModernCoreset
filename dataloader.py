@@ -110,7 +110,6 @@ def download_osm(place, admin_level, output_file):
 
     response = requests.get(overpass_url,
                             params={'data': overpass_query})
-    print(response.text)
     data = response.json()
     coords = []
     for element in tqdm(data['elements']):
@@ -126,6 +125,25 @@ def download_osm(place, admin_level, output_file):
         writer = csv.writer(outfile)
         for row in tqdm(coords):
             writer.writerow(row)
+
+
+def process_osm(osm_path):
+    '''
+    Processing the osm file, and write it to binary format.
+    :param osm_path: Path of osm file
+    '''
+    for event, element in etree.iterparse(osm_path, tag="node"):
+        yield [element.get('lat'), element.get('lon')]
+        element.clear()
+
+
+def write_osm_to_np(osm_path, out_path):
+    assert os.path.exists(osm_path), 'OSM file doesn\'t exist!'
+    assert os.path.exists(out_path), 'Please give an output file path!'
+    osm_data = np.array(list(process_osm(osm_path)))
+    assert type(osm_data).__module__ == 'numpy', 'Please input numpy array as data to conduct the evaluation'
+    np.save(out_path, osm_data)
+
 
 
 if __name__ == '__main__':
