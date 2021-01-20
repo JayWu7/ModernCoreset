@@ -42,11 +42,17 @@ class Points:
         else:
             self.weights = np.concatenate([self.weights, np.ones(len(values))], axis=0)
 
+        self.size += len(values)
+
     def set_weights(self, weights):
+        assert len(weights) == len(self.values), 'The new weights are not in the same length with the values.'
         self.weights = weights
 
     def get_values(self):
         return self.values
+
+    def get_dimension(self):
+        return self.dimension
 
     def get_weights(self):
         return self.weights
