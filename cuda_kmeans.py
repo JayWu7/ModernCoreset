@@ -30,7 +30,7 @@ def cuml_kmeans(raw_data, n_clusters=2):
     end_time = time.time()
 
     cost_time = end_time - start_time
-    print("Current data shape:{}, cost time:{}".format(raw_data.shape, cost_time))
+    #print("Current data shape:{}, cost time:{}".format(raw_data.shape, cost_time))
 
     print("labels:")
     print(kmeans_float.labels_)
@@ -52,18 +52,19 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
     items_in_per_G = round(array_length / size)
     results = []
     int_size = int(size) if int(size) == size else int(size) + 1
-    try:
-        for n in range(1, int_size + 1):
-            amount = items_in_per_G * n
-            data = array[:amount + 1]
-            kmeans_obj, cost_time = cuml_kmeans(data, n_clusters)
-            results.append([n, cost_time])
-    except:
-        print('Error happened, current data size: {}G'.format(n))
-    else:
-        print('Experiments conducted successfully!')
-    finally:
-        print("Finished!")
+    #try:
+    for n in range(1, int_size + 1):
+        amount = items_in_per_G * n
+        data = array[:amount + 1]
+        kmeans_obj, cost_time = cuml_kmeans(data, n_clusters)
+        print("Current data size: {}G, cost time: {}".format(n, cost_time))
+        results.append([n, cost_time])
+    #except:
+     #   print('Error happened, current data size: {}G'.format(n))
+    #else:
+     #   print('Experiments conducted successfully!')
+    #finally:
+     #   print("Finished!")
 
     if int_size != size:
         results[-1][0] = round(size, 1)
@@ -73,5 +74,5 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
 
 if __name__ == '__main__':
     results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
-    np.save(np.array(results), './data/result')
+    np.save('./data/result', np.array(results))
     write_list(results, './data/results.txt')
