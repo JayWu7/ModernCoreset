@@ -1,10 +1,10 @@
 import time
 from cuml import KMeans
-from dataloader import loader
-
 import cudf
 import numpy as np
 import pandas as pd
+from dataloader import loader
+from tools import write_list
 
 
 def np2cudf(df):
@@ -52,14 +52,26 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
     items_in_per_G = round(array_length / size)
     results = []
     int_size = int(size) if int(size) == size else int(size) + 1
-    for n in range(1, int_size + 1):
-        amount = items_in_per_G * n
-        data = array[:amount + 1]
-        kmeans_obj, cost_time = cuml_kmeans(data, n_clusters)
-        results.append([n, cost_time])
+    try:
+        for n in range(1, int_size + 1):
+            amount = items_in_per_G * n
+            data = array[:amount + 1]
+            kmeans_obj, cost_time = cuml_kmeans(data, n_clusters)
+            results.append([n, cost_time])
+    except:
+        print('Error happened, current data size: {}G'.format(n))
+    else:
+        print('Experiments conducted successfully!')
+    finally:
+        print("Finished!")
 
     if int_size != size:
         results[-1][0] = round(size, 1)
-
+    print(results)
     return results
 
+
+if __name__ == '__main__':
+    results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
+    np.save(np.array(results), './data/result')
+    write_list(results, './data/results.txt')
