@@ -15,7 +15,7 @@ using namespace std;
 namespace coreset {
 template <class T>
     class DataLoader {
-    private:
+    //private:
 
     public:
         DataLoader();
@@ -24,7 +24,7 @@ template <class T>
 
         void ExistedCheck(string filename);
 
-        vector<vector<T>> ReadCsv(string filepath, char sep = ",");
+        vector<vector<T>> ReadCsv(string filepath, char sep = ',');
 
         string PathJoin(string path, string file, char sep = '/');
 

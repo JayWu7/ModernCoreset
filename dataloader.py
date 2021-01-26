@@ -67,7 +67,7 @@ def loader(filename='Activity recognition exp', specific_file=None, sep=','):
 
 
 def sample(data, size=1000):
-    sample_idx = np.random.choice(len(data), size=size)
+    sample_idx = np.random.choice(len(data), size=size, replace=False)
     return data[sample_idx]
 
 
