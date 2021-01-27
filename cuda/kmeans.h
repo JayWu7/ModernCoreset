@@ -13,6 +13,8 @@
 #ifndef MODERNCORESET_CUDA_KMEANS_H
 #define MODERNCORESET_CUDA_KMEANS_H
 
+typedef unsigned long long int size_int;
+
 using namespace std;
 
 namespace coreset {
@@ -20,7 +22,7 @@ namespace coreset {
     private:
         //vector<vector<float>> points;
 
-        float cost;   // objective cost
+        long double cost;   // objective cost
 
         vector<vector<float>> centers;
 
@@ -28,16 +30,23 @@ namespace coreset {
 
         string init; // support types: ['k-means++', 'random']
 
+        vector<int> labels;
+
     protected:
         float Square(float value);
-        float Squared_L2_Distance(vector<float> first, vector<float> second);
+        float Squared_L2_Distance(vector<float> &first, vector<float> &second);
+        void VectorAddition(vector<float> &first, vector<float> &second);
+        void VectorAddition(vector<float> &output, vector<float> &first, vector<float> &second);
+        void VectorDivide(vector<float> &point, int  n);
 
     public:
         KMeans(int n_clusters = 8, string init = "k-means++", int n_init=10, int max_iter=300);
 
         void Fit(vector<vector<float>> &points, const vector<float> &weights=vector<float>());
 
-        float GetCost();
+        long double GetCost();
+
+        vector<int> GetLabel();
 
         vector<vector<float>> GetCenters();
 

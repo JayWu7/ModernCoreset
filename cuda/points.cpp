@@ -14,14 +14,14 @@ namespace coreset {
         this->weights = vector<float>();
     }
 
-    Points::Points(unsigned long size, unsigned int dimension) {
+    Points::Points(size_int size, unsigned int dimension) {
         this->size = size;
         this->dimension = dimension;
         this->values = vector<vector<float>>(size);
         this->weights = vector<float>(size);
     }
 
-    Points::Points(unsigned long size, unsigned int dimension, vector<vector<float> > values) {
+    Points::Points(size_int size, unsigned int dimension, vector<vector<float> > values) {
         this->size = size;
         this->dimension = dimension;
         if (this->size != values.size())
@@ -30,7 +30,7 @@ namespace coreset {
         this->weights = vector<float>(size);
     }
 
-    Points::Points(unsigned long size, unsigned int dimension, vector<vector<float> > values, vector<float> weights) {
+    Points::Points(size_int size, unsigned int dimension, vector<vector<float> > values, vector<float> weights) {
         this->size = size;
         this->dimension = dimension;
         if (this->size != values.size())

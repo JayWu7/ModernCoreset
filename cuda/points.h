@@ -4,6 +4,7 @@
 
 #ifndef MODERNCORESET_CUDA_POINTS_H
 #define MODERNCORESET_CUDA_POINTS_H
+typedef unsigned long long int size_int;
 
 #include <vector>
 
@@ -11,7 +12,7 @@ using namespace std;
 namespace coreset{
     class Points {
     private:
-        unsigned long int size;
+        size_int size;
         unsigned int dimension;
         vector<vector<float>> values;
         vector<float> weights;
@@ -19,11 +20,11 @@ namespace coreset{
     public:
         Points();
 
-        Points(unsigned long int size, unsigned int dimension);
+        Points(size_int size, unsigned int dimension);
 
-        Points(unsigned long int size, unsigned int dimension, vector<vector<float>> values);
+        Points(size_int size, unsigned int dimension, vector<vector<float>> values);
 
-        Points(unsigned long int size, unsigned int dimension, vector<vector<float>> values, vector<float> weights);
+        Points(size_int size, unsigned int dimension, vector<vector<float>> values, vector<float> weights);
 
         unsigned long int Size();
 
