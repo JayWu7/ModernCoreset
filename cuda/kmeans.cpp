@@ -189,7 +189,7 @@ namespace coreset {
         int index;
         for (int i = 0; i < n_cluster; i++) {
             index = (start_index + i) % size;
-            centers[i] = points[index];
+            centers[i] = points[indices[index]];
         }
         return centers;
     }

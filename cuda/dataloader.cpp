@@ -37,14 +37,15 @@ namespace coreset {
     vector<vector<T>> DataLoader<T>::DataSample(vector<vector<T> > data, unsigned long int size) {
         if (size > data.size())
             size = data.size();
-
+        random_device rd;  //Will be used to obtain a seed for the random number engine
+        mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+        shuffle(data.begin(), data.end(), gen); // shuffle the data
         vector<vector<T>> samples(data.begin(), data.begin() + size);
         return samples;
     }
 
     template<class T>
     vector<vector<T>> DataLoader<T>::ReadCsv(string filepath, char sep) {
-        // todo
         vector<vector<T>> data;
         ifstream fp(filepath);
         string line;
