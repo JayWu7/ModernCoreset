@@ -142,7 +142,7 @@ namespace coreset {
         vector<vector<float>> centers;
         size_int size = points.size();
         vector<float> dist(size, FLOAT_MAX_VALUE);
-        vector<float> weights(size, 1.0);
+        vector<float> weights(size);
         long double dist_sum;
 
         //Choose one center uniformly at random among the data points.
@@ -151,11 +151,12 @@ namespace coreset {
         uniform_int_distribution<> distrib(0, size - 1);
         int first_center_index = distrib(gen);
         centers.push_back(points[first_center_index]);  // Add the first center into the centers list
+
         int cur_center_index;
         for (int i = 0; i < n_cluster - 1; i++) {
             dist_sum = 0.0;
             for (size_int j = 0; j < size; j++) {
-                float new_dis = this->Squared_L2_Distance(centers.back(), points[j]);
+                float new_dis = this->Squared_L2_Distance(centers[i], points[j]);
                 if (new_dis < dist[j]) {
                     dist[j] = new_dis;
                 }
