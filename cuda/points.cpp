@@ -10,14 +10,14 @@ namespace coreset {
     Points::Points() {
         this->size = 0;
         this->dimension = 0;
-        this->values = vector<vector<float>>();
+        this->values = vector<vector<float> >();
         this->weights = vector<float>();
     }
 
     Points::Points(size_int size, unsigned int dimension) {
         this->size = size;
         this->dimension = dimension;
-        this->values = vector<vector<float>>(size);
+        this->values = vector<vector<float> >(size);
         this->weights = vector<float>(size);
     }
 
@@ -88,7 +88,7 @@ namespace coreset {
         this->weights = weights;
     }
 
-    vector<vector<float>> Points::GetValues() {
+    vector<vector<float> > Points::GetValues() {
         return this->values;
     }
 

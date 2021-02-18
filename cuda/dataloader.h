@@ -20,20 +20,20 @@ template <class T>
     public:
         DataLoader();
 
-        vector<vector<T>> Loader(string filename, string sep = ",", string file_type = "csv");
+        vector<vector<T> > Loader(string filename, string sep = ",", string file_type = "csv");
 
         void ExistedCheck(string filename);
 
-        vector<vector<T>> ReadCsv(string filepath, char sep = ',');
+        vector<vector<T> > ReadCsv(string filepath, char sep = ',');
 
         string PathJoin(string path, string file, char sep = '/');
 
-        vector<vector<T>> DataFilter(vector<vector<T>> data);
+        vector<vector<T> > DataFilter(vector<vector<T> > data);
 
-        vector<vector<T>> DataSample(vector<vector<T>> data, unsigned long int size);
+        vector<vector<T> > DataSample(vector<vector<T> > data, unsigned long int size);
 
         T stringToNum(const string &str); // string to numerical value
-    }
+    };
 
 }
 

@@ -24,7 +24,7 @@ namespace coreset {
 
         long double cost;   // objective cost
 
-        vector<vector<float>> centers;
+        vector<vector<float> > centers;
 
         int n_clusters, max_iter;
 
@@ -42,17 +42,17 @@ namespace coreset {
     public:
         KMeans(int n_clusters = 8, string init = "k-means++", int n_init=10, int max_iter=300);
 
-        void Fit(vector<vector<float>> &points, const vector<float> &weights=vector<float>());
+        void Fit(vector<vector<float> > &points, const vector<float> &weights=vector<float>());
 
         long double GetCost();
 
         vector<int> GetLabel();
 
-        vector<vector<float>> GetCenters();
+        vector<vector<float> > GetCenters();
 
-        vector<vector<float>> KMeans_pp_Init(vector<vector<float>> &points, int n_cluster = 8);
+        vector<vector<float> > KMeans_pp_Init(vector<vector<float> > &points, int n_cluster = 8);
 
-        vector<vector<float>> KMeans_rd_Init(vector<vector<float>> &points, int n_cluster = 8);
+        vector<vector<float> > KMeans_rd_Init(vector<vector<float> > &points, int n_cluster = 8);
 
     };
 

@@ -28,25 +28,26 @@ namespace coreset {
         //todo
     }
 
-    template<class T>
-    vector<vector<T>> DataLoader<T>::DataFilter(vector<vector<T> > data) {
-        // todo
-    }
+    // template<class T>
+    // vector<vector<T> > DataLoader<T>::DataFilter(vector<vector<T> > data) {
+    //     // todo
+    //     return vector<vector<T> > test();
+    // }
 
     template<class T>
-    vector<vector<T>> DataLoader<T>::DataSample(vector<vector<T> > data, unsigned long int size) {
+    vector<vector<T> > DataLoader<T>::DataSample(vector<vector<T> > data, unsigned long int size) {
         if (size > data.size())
             size = data.size();
         random_device rd;  //Will be used to obtain a seed for the random number engine
         mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
         shuffle(data.begin(), data.end(), gen); // shuffle the data
-        vector<vector<T>> samples(data.begin(), data.begin() + size);
+        vector<vector<T> > samples(data.begin(), data.begin() + size);
         return samples;
     }
 
     template<class T>
-    vector<vector<T>> DataLoader<T>::ReadCsv(string filepath, char sep) {
-        vector<vector<T>> data;
+    vector<vector<T> > DataLoader<T>::ReadCsv(string filepath, char sep) {
+        vector<vector<T> > data;
         ifstream fp(filepath);
         string line;
         getline(fp, line); // skip the first line
@@ -70,10 +71,10 @@ namespace coreset {
 
 
     template<class T>
-    vector<vector<T>> DataLoader<T>::Loader(string filename, string sep, string file_type) {
+    vector<vector<T> > DataLoader<T>::Loader(string filename, string sep, string file_type) {
         //ExistedCheck(filename);
         string file_path = PathJoin("./data", filename);
-        vector<vector<T>> data;
+        vector<vector<T> > data;
         if (file_type == "csv") {
             data = ReadCsv(file_path);
         } else if (file_type == "txt") {

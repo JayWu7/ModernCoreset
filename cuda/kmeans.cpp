@@ -65,7 +65,7 @@ namespace coreset {
         return this->cost;
     }
 
-    vector<vector<float>> KMeans::GetCenters() {
+    vector<vector<float> > KMeans::GetCenters() {
         return this->centers;
     }
 
@@ -80,7 +80,7 @@ namespace coreset {
         size_int size = points.size();
         int dimension = points[0].size();
         vector<int> assigns(size);  // clusters assignments of each point
-        vector<vector<float>> centers;
+        vector<vector<float> > centers;
 
         if (this->init == "k-means++"){
             centers = this->KMeans_pp_Init(points, this->n_clusters);
@@ -95,7 +95,7 @@ namespace coreset {
         float cur_min_dis; // Current minimum distance
         float cur_dis;
         int cur_assigned_center;
-        vector<vector<float>> new_centers(n_clusters, vector<float>(dimension, 0.0));
+        vector<vector<float> > new_centers(n_clusters, vector<float>(dimension, 0.0));
         vector<int> count(n_clusters, 0);
         long double cost;
 
@@ -132,14 +132,14 @@ namespace coreset {
         }
     }
 
-    vector<vector<float>> KMeans::KMeans_pp_Init(vector<vector<float> > &points, int n_cluster) {
+    vector<vector<float> > KMeans::KMeans_pp_Init(vector<vector<float> > &points, int n_cluster) {
         /*
          * KMeans++ initialization
         */
         if (n_cluster < 1) {
             throw "n_cluster, the number of clusters should at least greater than 1.";
         }
-        vector<vector<float>> centers;
+        vector<vector<float> > centers;
         size_int size = points.size();
         vector<float> dist(size, FLOAT_MAX_VALUE);
         vector<float> weights(size);
@@ -173,7 +173,7 @@ namespace coreset {
         return centers;
     }
 
-    vector<vector<float>> KMeans::KMeans_rd_Init(vector<vector<float> > &points, int n_cluster) {
+    vector<vector<float> > KMeans::KMeans_rd_Init(vector<vector<float> > &points, int n_cluster) {
         /*
          * Random initialization of clusters
         */
@@ -186,7 +186,7 @@ namespace coreset {
         shuffle(indices.begin(), indices.end(), gen);
         uniform_int_distribution<> distrib(0, size - 1);
         int start_index = distrib(gen);
-        vector<vector<float>> centers(n_cluster);
+        vector<vector<float> > centers(n_cluster);
         int index;
         for (int i = 0; i < n_cluster; i++) {
             index = (start_index + i) % size;
