@@ -80,3 +80,4 @@ pics/
 #data
 /data
 .vscode/
+*.o

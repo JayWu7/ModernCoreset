@@ -204,11 +204,7 @@ compute_coreset(thrust::device_vector <thrust::device_vector<float>> &device_poi
 
     thrust::device_vector <thrust::device_vector<float>> coreset(n_coreset);
     for (int i = 0; i < n_coreset; i++){
-        //todo
         int id = d(gen);
-
-        prob_x[id] = 0.0;
-        discrete_distribution<> d(prob_x.begin(), prob_x.end());
         coreset[i] = device_points[id];
     }
 
