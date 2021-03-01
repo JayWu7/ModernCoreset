@@ -81,3 +81,4 @@ pics/
 /data
 .vscode/
 *.o
+*.exe

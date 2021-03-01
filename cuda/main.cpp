@@ -4,6 +4,8 @@
 
 #include "kmeans.h"
 #include "dataloader.h"
+#include "dataloader.cpp"
+#include <iostream>
 
 using namespace std;
 using namespace coreset;
