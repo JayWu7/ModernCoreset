@@ -10,7 +10,7 @@ namespace coreset {
 
     template<class T>
     DataLoader<T>::DataLoader() {
-        // todo
+        cout << "Dataloader object is being created" << endl;
     }
 
 
@@ -71,7 +71,7 @@ namespace coreset {
 
 
     template<class T>
-    vector<vector<T> > DataLoader<T>::Loader(string filename, string sep, string file_type) {
+    vector<vector<T> > DataLoader<T>::Loader(string filename, char sep, string file_type) {
         //ExistedCheck(filename);
         string file_path = PathJoin("./data", filename);
         vector<vector<T> > data;

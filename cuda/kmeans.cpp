@@ -194,5 +194,4 @@ namespace coreset {
         }
         return centers;
     }
-
 }

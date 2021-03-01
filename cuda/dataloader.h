@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+#include <iostream>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ template <class T>
     public:
         DataLoader();
 
-        vector<vector<T> > Loader(string filename, string sep = ",", string file_type = "csv");
+        vector<vector<T> > Loader(string filename, char sep = ',', string file_type = "csv");
 
         void ExistedCheck(string filename);
 
