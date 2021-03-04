@@ -212,3 +212,5 @@ compute_coreset(thrust::device_vector <thrust::device_vector<float>> &device_poi
 }
 
 
+
+

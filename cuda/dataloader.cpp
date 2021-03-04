@@ -49,6 +49,7 @@ namespace coreset {
     template<class T>
     vector<vector<T> > DataLoader<T>::ReadCsv(string filepath, char sep) {
         vector<vector<T> > data;
+        cout<<filepath<<endl;
         ifstream fp(filepath);
         string line;
         getline(fp, line); // skip the first line
@@ -74,9 +75,10 @@ namespace coreset {
     template<class T>
     vector<vector<T> > DataLoader<T>::Loader(string filename, char sep, string file_type) {
         //ExistedCheck(filename);
-        string file_path = PathJoin("./data", filename);
+        string file_path = PathJoin("../data", filename);
         vector<vector<T> > data;
         if (file_type == "csv") {
+            cout<<"yes"<<endl;
             data = ReadCsv(file_path);
         } else if (file_type == "txt") {
             //todo
