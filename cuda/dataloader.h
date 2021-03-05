@@ -23,9 +23,13 @@ template <class T>
 
         vector<vector<T> > Loader(string filename, char sep = ',', string file_type = "csv");
 
+        vector<T> Loader_1D(string filename, char sep = ',', string file_type = "csv");
+
         void ExistedCheck(string filename);
 
         vector<vector<T> > ReadCsv(string filepath, char sep = ',');
+
+        vector<T> ReadCsv_1D(string filepath, char sep = ',');  // Read data into 1-d format
 
         string PathJoin(string path, string file, char sep = '/');
 

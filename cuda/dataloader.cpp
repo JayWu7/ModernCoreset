@@ -49,7 +49,6 @@ namespace coreset {
     template<class T>
     vector<vector<T> > DataLoader<T>::ReadCsv(string filepath, char sep) {
         vector<vector<T> > data;
-        cout<<filepath<<endl;
         ifstream fp(filepath);
         string line;
         getline(fp, line); // skip the first line
@@ -80,6 +79,48 @@ namespace coreset {
         if (file_type == "csv") {
             cout<<"yes"<<endl;
             data = ReadCsv(file_path);
+        } else if (file_type == "txt") {
+            //todo
+        } else {
+            throw ("We don't support s% file type at this moment.", file_type);
+        }
+
+        //data = DataFilter(data);
+        return data;
+    }
+
+
+    template<class T>
+    vector<T> DataLoader<T>::ReadCsv_1D(string filepath, char sep) {
+        vector<T> data;
+        ifstream fp(filepath);
+        string line;
+        getline(fp, line); // skip the first line
+        while (getline(fp, line)) {
+            string value = "";
+            for (int i = 0; i < line.size(); i++){
+                if (line[i] == sep){
+                    data.push_back(stringToNum(value));
+                    value = "";
+                }
+                else{
+                    value += line[i];
+                }
+            }
+            data.push_back(stringToNum(value)); // add the last number
+        }
+        return data;
+    }
+
+
+    template<class T>
+    vector<T>  DataLoader<T>::Loader_1D(string filename, char sep, string file_type) {
+        //ExistedCheck(filename);
+        string file_path = PathJoin("../data", filename);
+        vector<T> data;
+        if (file_type == "csv") {
+            cout<<"yes"<<endl;
+            data = ReadCsv_1D(file_path);
         } else if (file_type == "txt") {
             //todo
         } else {

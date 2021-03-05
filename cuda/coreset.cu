@@ -6,6 +6,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <random>
+#include <vector>
 
 typedef unsigned long long int size_int;
 #define FLOAT_MAX_VALUE 3.40282e+038
@@ -185,9 +186,9 @@ _compute_sigma(thrust::device_vector <thrust::device_vector<float>> &device_poin
     return dist;
 }
 
-thrust::device_vector <thrust::device_vector<float>>
-compute_coreset(thrust::device_vector <thrust::device_vector<float>> &device_points, int n_cluster, int n_coreset) {
-    size_int data_size = device_points.size();
+vector<vector<float> >
+compute_coreset(vector<vector<float> > &points, int n_cluster, int n_coreset) {
+    size_int data_size = points.size();
     if (data_size < n_coreset) {
         throw "Setting size of coreset is greater or equal to the original data size, please alter it";
     }
