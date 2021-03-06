@@ -115,6 +115,11 @@ namespace coreset {
             }
             data.push_back(stringToNum(value)); // add the last number
         }
+
+        if (data.size() % this->dimension != 0){
+            throw "Dataset error! Probably somewhere have missing";
+        }
+
         return data;
     }
 
