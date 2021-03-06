@@ -17,9 +17,12 @@ namespace coreset {
 template <class T>
     class DataLoader {
     //private:
-
     public:
+        unsigned int dimension;
+
         DataLoader();
+
+        DataLoader(unsigned int dimension);
 
         vector<vector<T> > Loader(string filename, char sep = ',', string file_type = "csv");
 

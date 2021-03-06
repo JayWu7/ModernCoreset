@@ -26,14 +26,25 @@ __device__ float _squared_l2_distance(thrust::device_vector<float> &first, thrus
 }
 
 
+__device__ float _squared_l2_distance_with_index(thrust::device_vector<float> &first, size_int fid, thrust::device_vector<float> &second, size_int sid, unsigned int dimension) {
+    float distance = 0.0;
+    for (int i = 0; i < dimension; i++) {
+        float gap = first[fid + i] - second[sid + i]
+        distance += gap * gap;
+    }
+    return distance;
+}
+
+
 //todo, test if using [long double] type of dist_sum will influence the performance
-__global__ void _min_dist(float dist_sum, thrust::device_vector<float> &last_center,
-                          thrust::device_vector <thrust::device_vector<float>> &device_points,
-                          thrust::device_vector<float> &dist, size_int n) {
+__global__ void _min_dist(float dist_sum, thrust::device_vector<float> &centers, size_int center_id, 
+                          thrust::device_vector<float> &device_points,
+                          thrust::device_vector<float> &dist, size_int n, unsigned int dimension) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (tid < n) {
-        float new_dis = _squared_l2_distance(last_center, device_points[tid]);
+        int sid = tid * dimension;
+        float new_dis = _squared_l2_distance_with_index(centers, center_id, device_points, sid, dimension);
         if (new_dis < dist[tid]) {
             dist[tid] = new_dis;
         }
@@ -87,16 +98,16 @@ k_means_pp_init_cu(vector <vector<float>> &points, int n_cluster) {
     return centers;
 }
 
-//overload this function
-thrust::device_vector <thrust::device_vector<float>>
-k_means_pp_init_cu(thrust::device_vector <thrust::device_vector<float>> &device_points, int n_cluster) {
+
+//Change the function to accept 1-d form input
+thrust::device_vector<float>
+k_means_pp_init_cu(thrust::device_vector<float> &device_points, int n_cluster, unsigned int dimension) {
     if (n_cluster < 1) {
         throw "n_cluster, the number of clusters should at least greater than 1.";
     }
 
-    thrust::device_vector <thrust::device_vector<float>> centers(n_cluster);
-//    thrust::device_vector <thrust::device_vector<float>> device_points(points);
-    size_int size = points.size();
+    thrust::device_vector<float> centers(n_cluster * dimension); // 1 d
+    size_int size = points.size() / dimension;
     thrust::device_vector<float> dist(size, FLOAT_MAX_VALUE);
     thrust::device_vector<float> weights(size);
     float dist_sum; // todo, try [long double] type
@@ -106,18 +117,27 @@ k_means_pp_init_cu(thrust::device_vector <thrust::device_vector<float>> &device_
     mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     uniform_int_distribution<> distrib(0, size - 1);
     int first_center_index = distrib(gen);
-    centers[0] = device_points[first_center_index];
+    int start_index = first_center_index * dimension;
+    
+    for (int i = 0; i < dimension; i++){
+        centers[i] = device_points[start_index + i];
+    }
 
     int cur_center_index;
     for (int i = 0; i < n_cluster - 1; i++) {
         dist_sum = 0.0;
         // launching kernel
-        _min_dist<<<100, 256>>>(dist_sum, centers[i], device_points, dist, size);
+        int center_start_id = i * dimension;
+        _min_dist<<<100, 256>>>(dist_sum, centers, center_start_id; device_points, dist, size, dimension);
         _calculate_weights<<<100, 256>>>(dist_sum, weights, dist, size);
 
         discrete_distribution<> dd(weights.begin(), weights.end());
         cur_center_index = dd(gen);
-        centers[i + 1] = device_points[cur_center_index];
+        start_index = cur_center_index * dimension;
+        center_start_id += dimension; 
+        for (int i = 0; i < dimension; i++){
+            centers[center_start_id + i] = device_points[start_index + i];
+        }
     }
     return centers;
 }
@@ -187,14 +207,14 @@ _compute_sigma(thrust::device_vector <thrust::device_vector<float>> &device_poin
 }
 
 vector<vector<float> >
-compute_coreset(vector<vector<float> > &points, int n_cluster, int n_coreset) {
-    size_int data_size = points.size();
+compute_coreset(vector<float> &points, unsigned int dimension, unsigned int n_cluster, unsigned int n_coreset) {
+    size_int data_size = points.size() / dimension;
     if (data_size < n_coreset) {
         throw "Setting size of coreset is greater or equal to the original data size, please alter it";
     }
 
-    thrust::device_vector <thrust::device_vector<float>> centers;
-    centers = k_means_pp_init_cu(device_points, n_cluster);
+    thrust::device_vector<float> centers; // 1d data
+    centers = k_means_pp_init_cu(device_points, n_cluster, unsigned int dimension);
 
     thrust::device_vector<float> prob_x;
     prob_x = _compute_sigma(device_points, centers);

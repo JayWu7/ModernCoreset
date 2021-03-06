@@ -14,6 +14,12 @@ namespace coreset {
         cout << "Dataloader object is being created" << endl;
     }
 
+    template<class T>
+    DataLoader<T>::DataLoader(unsigned dimension) {
+        this->dimension = dimension;
+        cout << "Dataloader object is being created" << endl;
+    }
+
 
     template<class T>
     string DataLoader<T>::PathJoin(string path, string file, char sep) {
