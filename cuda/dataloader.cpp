@@ -125,7 +125,6 @@ namespace coreset {
         string file_path = PathJoin("../data", filename);
         vector<T> data;
         if (file_type == "csv") {
-            cout<<"yes"<<endl;
             data = ReadCsv_1D(file_path);
         } else if (file_type == "txt") {
             //todo
