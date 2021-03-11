@@ -5,11 +5,12 @@ import numpy as np
 import pandas as pd
 from dataloader import loader
 from tools import write_list
-
+import dask_cudf
 
 def np2cudf(df):
     # convert numpy array to cuDF dataframe
     df = pd.DataFrame({'fea%d' % i: df[:, i] for i in range(df.shape[1])})
+    df = dask_cudf.from_cudf(df,npartitions=6)
     pdf = cudf.DataFrame()
     for c, column in enumerate(df):
         pdf[str(c)] = df[column]
@@ -19,8 +20,8 @@ def np2cudf(df):
 def cuml_kmeans(raw_data, n_clusters=2):
     # raw_data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
     data = np2cudf(raw_data)
-    print("input:")
-    print(data)
+    print("input shape:")
+    print(data.shape)
 
     start_time = time.time()
     print("Calling fit")
@@ -57,6 +58,7 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
         amount = items_in_per_G * n
         data = array[:amount + 1]
         kmeans_obj, cost_time = cuml_kmeans(data, n_clusters)
+        del kmeans_obj
         print("Current data size: {}G, cost time: {}".format(n, cost_time))
         results.append([n, cost_time])
     #except:

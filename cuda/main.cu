@@ -6,6 +6,7 @@
 #include "kmeans.cpp"
 #include "dataloader.h"
 #include "dataloader.cpp"
+#include "coreset.cu"
 #include <iostream>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -43,8 +44,14 @@ int main(){
 
 
     //Test Coreset method:
-    thrust::device_vector<float> device_points(data.begin(), data.end());
-
+    //thrust::device_vector<float> device_points(data.begin(), data.end());
+    unsigned int dimension = dataloader.dimension;
+    unsigned int n_cluster = 5;
+    size_int n = data.size() / dimension; 
+    float centers[n_cluster * dimension];
+    float points[data.size()];
+    copy(data.begin(), data.end(), points);
+    k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
     //for (int i=0; i<a.size(); i++){
       //  cout<<a[i][0]<<endl;
     //}
