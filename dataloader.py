@@ -147,7 +147,7 @@ def write_osm_to_np(osm_path, out_path):
 
 
 if __name__ == '__main__':
-    # data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+    #data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
     # print(data.shape)
     # print(sample(data))
     # url = 'http://data.gdeltproject.org/gkg/index.html'
@@ -158,4 +158,6 @@ if __name__ == '__main__':
     # data = loader(filename='gdelt', specific_file='20200518.gkgcounts.csv', sep='\t')
     # print(data[:10])
     # print(data.shape)
-    download_osm('GB', 2, './data/OSM/de_osm.csv')
+    #download_osm('GB', 2, './data/OSM/de_osm.csv')
+    data = loader(filename='hayes-roth.csv')
+    print(data)

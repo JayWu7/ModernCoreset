@@ -3,7 +3,7 @@
 //
 
 #include "kmeans.h"
-
+#include <iostream>
 #define FLOAT_MAX_VALUE 3.40282e+038
 
 using namespace std;

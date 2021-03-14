@@ -10,10 +10,10 @@ import dask_cudf
 def np2cudf(df):
     # convert numpy array to cuDF dataframe
     df = pd.DataFrame({'fea%d' % i: df[:, i] for i in range(df.shape[1])})
-    df = dask_cudf.from_cudf(df,npartitions=6)
     pdf = cudf.DataFrame()
     for c, column in enumerate(df):
         pdf[str(c)] = df[column]
+    pdf = dask_cudf.from_cudf(pdf,npartitions=6)
     return pdf
 
 

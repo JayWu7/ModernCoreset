@@ -14,6 +14,7 @@
 #include <thrust/device_vector.h>
 #include <vector>
 
+
 using namespace std;
 using namespace coreset;
 
@@ -48,17 +49,16 @@ int main(){
     unsigned int dimension = dataloader.dimension;
     unsigned int n_cluster = 5;
     size_int n = data.size() / dimension; 
-    float centers[n_cluster * dimension];
+    //float centers[n_cluster * dimension];
     float points[data.size()];
     copy(data.begin(), data.end(), points);
-    k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
-    //for (int i=0; i<a.size(); i++){
-      //  cout<<a[i][0]<<endl;
-    //}
-    //thrust::device_vector <thrust::device_vector<float> > device_points;
-    //thrust::copy(host_points.begin(), host_points.end(), device_points.begin());
-    //cout<<device_points.size()<<endl;
+    //k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
     
+    unsigned int n_coreset = 20;
+    coreset::Points coreset(n_coreset, dimension);
+
+    compute_coreset(coreset, data, dimension, n_cluster, n_coreset);
+
     return 0;
 }
 

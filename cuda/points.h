@@ -26,6 +26,8 @@ namespace coreset{
 
         Points(size_int size, unsigned int dimension, vector<vector<float> > values, vector<float> weights);
 
+	Points(size_int size, unsigned int dimension, float* values, float* weights);
+
         unsigned long int Size();
 
         void FillPoints(vector<vector<float> > values, vector<float> weights = vector<float>());
