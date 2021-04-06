@@ -188,15 +188,16 @@ __global__ void _compute_sigma_dist(float* device_points,
 }
 
 
-__global__ void _compute_sigma_x(float* dist, float* sigma,
+__global__ void _compute_sigma_x(float* dist, float* device_weights, float* sigma,
                                  unsigned int* assign,
-                                 size_int *cluster_size, float dist_sum, size_int n) {
+                                 size_int *cluster_size, float *cluster_weights,
+                                 float dist_sum, size_int n) {
 
 
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
-        float res = (dist[tid] / dist_sum) + 1.0 / cluster_size[assign[tid]];
-        sigma[tid] = res; // change dist vector to sigma_x vector
+        float res = device_weights[tid] * ((dist[tid] / dist_sum) + 1.0 / (cluster_weights[assign[n]] * cluster_size[assign[tid]]));
+        sigma[tid] = res; 
     }
 }
 
@@ -204,21 +205,21 @@ __global__ void _compute_sigma_x(float* dist, float* sigma,
 __global__ void _compute_prob_x(float* sigma_x, float* prob_x, float sigma_sum, size_int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
-        prob_x[tid] = sigma_x[tid] / sigma_sum; // change sigma_x vector to prob_x vector
+        prob_x[tid] = sigma_x[tid] / sigma_sum; 
     }
 }
 
 
-__global__ void _compute_weights(float* prob_x, float* weight_x, size_int n, size_int n_coreset) {
+__global__ void _compute_weights(float* prob_x, float* device_weights, float* weight_x, size_int n, size_int n_coreset) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
-        weight_x[tid] = 1 / (n_coreset * prob_x[tid]); // change prob_x vector to weight_x vector
-    }
+        weight_x[tid] = device_weights[tid] / (n_coreset * prob_x[tid]); 
 }
 
 
 void
 _compute_sigma(float* points,
+                float* data_weights,
                float* centers, size_int n, 
 	       float* prob_x, float* weights,
                unsigned int n_cluster, unsigned int dimension, size_int n_coreset) {
@@ -228,32 +229,36 @@ _compute_sigma(float* points,
     float sigma[n];
     unsigned int assign[n];
     size_int cluster_size[n_cluster];
+    float cluster_weights[n_cluster];
     float dist_sum; // todo, try [long double] type
     float sigma_sum;
 
     //Initialize cluster_size
     for(int i=0; i<n_cluster; i++){
         cluster_size[i] = 0;
+        cluster_weights[i] = 0.0;
     }
 
     //Allocate GPU memory
-    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_centers, *d_weights;
-    size_int *d_cluster_size;
+    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_data_weights, *d_centers, *d_weights;
+    size_int *d_cluster_size, *d_cluster_weights;
     unsigned int *d_assign;
 
     cudaMalloc((void**)&d_dist, sizeof(float) * n);
     cudaMalloc((void**)&d_sigma, sizeof(float) * n);
     cudaMalloc((void**)&d_points, sizeof(float) * n * dimension);
+    cudaMalloc((void**)&d_data_weights, sizeof(float) * n);
     cudaMalloc((void**)&d_centers, sizeof(float) * n_cluster * dimension);
     cudaMalloc((void**)&d_prob_x, sizeof(float) * n);
     cudaMalloc((void**)&d_weights, sizeof(float) * n);
     cudaMalloc((void**)&d_cluster_size, sizeof(size_int) * n_cluster);
+    cudaMalloc((void**)&d_cluster_weights, sizeof(float) * n_cluster);
     cudaMalloc((void**)&d_assign, sizeof(unsigned int) * n);
 
     //Copy data
     cudaMemcpy(d_points, points, sizeof(float) * n * dimension, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_data_weights, data_weights, sizeof(float) * n, cudaMemcpyHostToDevice);
     cudaMemcpy(d_centers, centers, sizeof(float) * n_cluster * dimension, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_cluster_size, cluster_size, n_cluster * sizeof(size_int), cudaMemcpyHostToDevice);
     //Launch kernel
     int block_size = 256; // in each block, we have 256 threads
     int grid_size = divup(n, block_size);  // ensure that we call enough block
@@ -266,15 +271,17 @@ _compute_sigma(float* points,
     
     for(int i=0; i<n; i++){
     	cluster_size[assign[i]] += 1;
+        cluster_weights[assign[i]] += data_weights[i];
     }
 
     cudaMemcpy(d_cluster_size, cluster_size, n_cluster * sizeof(size_int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_cluster_weights, cluster_weights, n_cluster * sizeof(float), cudaMemcpyHostToDevice);
 
     //Using thrust library to get the sum of dist
     thrust::device_vector<float> device_dist(dist, dist + n);
     dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
 
-    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_sigma, d_assign, d_cluster_size, dist_sum, n);
+    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_data_weights, d_sigma, d_assign, d_cluster_size, d_cluster_weights, dist_sum, n);
     
     cudaMemcpy(sigma, d_sigma, n * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -283,7 +290,7 @@ _compute_sigma(float* points,
     sigma_sum = thrust::reduce(device_sigma.begin(), device_sigma.end(), (float) 0, thrust::plus<float>());
     _compute_prob_x<<<grid_size, block_size>>>(d_sigma, d_prob_x, sigma_sum, n);  
     
-    _compute_weights<<<grid_size, block_size>>>(d_prob_x, d_weights, n, n_coreset);
+    _compute_weights<<<grid_size, block_size>>>(d_prob_x, d_data_weights, d_weights, n, n_coreset);
     //copy d_weights back to CPU
     cudaMemcpy(prob_x, d_prob_x, n * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(weights, d_weights, n * sizeof(float), cudaMemcpyDeviceToHost);
@@ -295,6 +302,7 @@ _compute_sigma(float* points,
     CHECK(cudaFree(d_prob_x));
     CHECK(cudaFree(d_sigma));
     CHECK(cudaFree(d_cluster_size));
+    CHECK(cudaFree(d_cluster_weights));
     CHECK(cudaFree(d_assign));
     CHECK(cudaFree(d_weights));
 }
@@ -303,7 +311,7 @@ _compute_sigma(float* points,
 
 // Compute Coreset Function, return the Points type 
 void
-compute_coreset(coreset::Points coreset, vector<float> &points, unsigned int dimension, unsigned int n_cluster, size_int n_coreset) {
+compute_coreset(coreset::Points coreset, vector<float> &points, vector<float> &data_weights, unsigned int dimension, unsigned int n_cluster, size_int n_coreset) {
     size_int n = points.size() / dimension;
     size_int data_size = points.size();
 
@@ -313,6 +321,8 @@ compute_coreset(coreset::Points coreset, vector<float> &points, unsigned int dim
 
     float host_points[data_size];
     copy(points.begin(), points.end(), host_points);
+    float host_weights[n];
+    copy(data_weights.begin(), data_weights.end(), host_weights);
 
     float centers[n_cluster * dimension];
     k_means_pp_init_cu(host_points, n,centers, n_cluster, dimension);
@@ -333,15 +343,15 @@ compute_coreset(coreset::Points coreset, vector<float> &points, unsigned int dim
 
     for(int i=0; i<n_coreset; i++){
         vector<float> sample(dimension);
-	size_int sid = sample_idx[i];
-	size_int data_start_id = sid * dimension;
+        size_int sid = sample_idx[i];
+        size_int data_start_id = sid * dimension;
 
-	for(int j=0; j<dimension; j++){
-            sample[j] = host_points[data_start_id + j];
-        }
+        for(int j=0; j<dimension; j++){
+                sample[j] = host_points[data_start_id + j];
+            }
 
-	samples[i] = sample;
-	samples_weights[i]=weights[sid];
+        samples[i] = sample;
+        samples_weights[i]=weights[sid];
     }
    
     //Using Point object to store the coreset
