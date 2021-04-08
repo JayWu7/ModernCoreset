@@ -10,7 +10,6 @@
 #include "points.h"
 #include "points.cpp"
 #include "random_sample.cu"
-
 typedef unsigned long long int size_int;
 #define FLOAT_MAX_VALUE 3.40282e+038
 using namespace std;
@@ -214,12 +213,13 @@ __global__ void _compute_weights(float* prob_x, float* device_weights, float* we
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
         weight_x[tid] = device_weights[tid] / (n_coreset * prob_x[tid]); 
+    }
 }
 
 
 void
 _compute_sigma(float* points,
-                float* data_weights,
+               float* data_weights,
                float* centers, size_int n, 
 	       float* prob_x, float* weights,
                unsigned int n_cluster, unsigned int dimension, size_int n_coreset) {
@@ -240,8 +240,8 @@ _compute_sigma(float* points,
     }
 
     //Allocate GPU memory
-    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_data_weights, *d_centers, *d_weights;
-    size_int *d_cluster_size, *d_cluster_weights;
+    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_data_weights, *d_centers, *d_weights, *d_cluster_weights;
+    size_int *d_cluster_size;
     unsigned int *d_assign;
 
     cudaMalloc((void**)&d_dist, sizeof(float) * n);
@@ -305,13 +305,14 @@ _compute_sigma(float* points,
     CHECK(cudaFree(d_cluster_weights));
     CHECK(cudaFree(d_assign));
     CHECK(cudaFree(d_weights));
+
 }
 
 
 
 // Compute Coreset Function, return the Points type 
-void
-compute_coreset(coreset::Points coreset, vector<float> &points, vector<float> &data_weights, unsigned int dimension, unsigned int n_cluster, size_int n_coreset) {
+coreset::Points
+compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int dimension, unsigned int n_cluster, size_int n_coreset) {
     size_int n = points.size() / dimension;
     size_int data_size = points.size();
 
@@ -319,11 +320,13 @@ compute_coreset(coreset::Points coreset, vector<float> &points, vector<float> &d
         throw "Setting size of coreset is greater or equal to the original data size, please alter it";
     }
 
+    coreset::Points coreset(n_coreset, dimension); //define coreset class
+
     float host_points[data_size];
     copy(points.begin(), points.end(), host_points);
     float host_weights[n];
     copy(data_weights.begin(), data_weights.end(), host_weights);
-
+    
     float centers[n_cluster * dimension];
     k_means_pp_init_cu(host_points, n,centers, n_cluster, dimension);
 
@@ -331,7 +334,7 @@ compute_coreset(coreset::Points coreset, vector<float> &points, vector<float> &d
     float prob_x[n];
     float weights[n];
     
-    _compute_sigma(host_points, centers, n, prob_x, weights, n_cluster, dimension, n_coreset);
+    _compute_sigma(host_points, host_weights, centers, n, prob_x, weights, n_cluster, dimension, n_coreset);
    
     size_int sample_idx[n_coreset];
 
@@ -353,9 +356,8 @@ compute_coreset(coreset::Points coreset, vector<float> &points, vector<float> &d
         samples[i] = sample;
         samples_weights[i]=weights[sid];
     }
-   
     //Using Point object to store the coreset
     coreset.FillPoints(samples, samples_weights);
-
+    return coreset;
 }
 

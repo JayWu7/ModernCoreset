@@ -50,14 +50,29 @@ int main(){
     unsigned int n_cluster = 5;
     size_int n = data.size() / dimension; 
     //float centers[n_cluster * dimension];
-    float points[data.size()];
-    copy(data.begin(), data.end(), points);
+    vector<float> data_weights(n, 1.0);
     //k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
-    
+   
     unsigned int n_coreset = 20;
     coreset::Points coreset(n_coreset, dimension);
 
-    compute_coreset(coreset, data, dimension, n_cluster, n_coreset);
+    coreset = compute_coreset(data, data_weights, dimension, n_cluster, n_coreset);
+    
+    vector<vector<float>> v = coreset.GetValues();
+    vector<float> w = coreset.GetWeights();
+    
+    /*
+    for(int i=0; i<n_coreset; i++){
+        for(int j=0; j<dimension; j++){
+	    cout<<v[i][j]<<" ";
+	}
+	cout<<endl;
+    }
+    
+    for(int i=0; i<n_coreset; i++){
+        cout<<w[i]<<endl;
+    }*/
+
 
     return 0;
 }
