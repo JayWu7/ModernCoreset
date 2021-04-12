@@ -49,6 +49,16 @@ __device__ float _squared_l2_distance_with_index(float* first, size_int fid, flo
     return distance;
 }
 
+ __global__ void vector_multiply(float* vector_a, float* vector_b, float* output, size_int n){
+     int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+     if (tid < n){
+         output[tid] = vector_a[tid] * vector_b[tid];
+     }
+
+ }
+
+
 static inline int divup(int a, int b) {
     return (a + b - 1)/b;
 }
@@ -80,7 +90,7 @@ _calculate_weights(float dist_sum, float* weights, float* dist,
 
 
 //Change the function to accept 1-d form input
-void k_means_pp_init_cu(float *points, size_int size, float *centers, int n_cluster, unsigned int dimension) {
+void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float *centers, int n_cluster, unsigned int dimension) {
     if (n_cluster < 1) {
         throw "n_cluster, the number of clusters should at least greater than 1.";
     }
@@ -96,10 +106,11 @@ void k_means_pp_init_cu(float *points, size_int size, float *centers, int n_clus
     float dist_sum; // todo, try [long double] type
     //Allocate GPU memory
     
-    float *d_dist, *d_weights, *d_points, *d_centers;
+    float *d_dist, *d_weights, *d_points, *d_centers, *d_data_weights;
 
     CHECK(cudaMalloc((void**)&d_dist, sizeof(float) * size));
     CHECK(cudaMalloc((void**)&d_weights, sizeof(float) * size));
+    CHECK(cudaMalloc((void**)&d_data_weights, sizeof(float) * size));
     CHECK(cudaMalloc((void**)&d_points, sizeof(float) * size * dimension));
     CHECK(cudaMalloc((void**)&d_centers, sizeof(float) * n_cluster * dimension));
     
@@ -120,6 +131,7 @@ void k_means_pp_init_cu(float *points, size_int size, float *centers, int n_clus
     CHECK(cudaMemcpy(d_points, points, sizeof(float) * size * dimension, cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(d_centers, centers, sizeof(float) * n_cluster * dimension, cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(d_dist, dist, sizeof(float) * size, cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(d_data_weights, data_weights, sizeof(float) * size, cudaMemcpyHostToDevice));
     
     int cur_center_index;
     for (int i = 0; i < n_cluster-1; i++) { 
@@ -131,7 +143,8 @@ void k_means_pp_init_cu(float *points, size_int size, float *centers, int n_clus
 	int grid_size = divup(size, block_size);  // ensure that we call enough thread
 	//Run kernel
         _min_dist<<<grid_size, block_size>>>(d_centers, center_start_id, d_points, d_dist, size, dimension);
-        
+        //Time the point weights with it's dist
+        vector_multiply<<<grid_size, block_size>>>(d_dist, d_data_weights, d_dist, size);
 	//copy d_dist back to CPU
 	cudaMemcpy(dist, d_dist, size * sizeof(float), cudaMemcpyDeviceToHost);
 	//Using thrust library to get the sum
@@ -157,6 +170,7 @@ void k_means_pp_init_cu(float *points, size_int size, float *centers, int n_clus
     CHECK(cudaFree(d_points));
     CHECK(cudaFree(d_centers));
     CHECK(cudaFree(d_weights));
+    CHECK(cudaFree(d_data_weights));
     CHECK(cudaFree(d_dist));
 }
 
@@ -189,17 +203,16 @@ __global__ void _compute_sigma_dist(float* device_points,
 
 __global__ void _compute_sigma_x(float* dist, float* device_weights, float* sigma,
                                  unsigned int* assign,
-                                 size_int *cluster_size, float *cluster_weights,
+                                 float *cluster_weights,
                                  float dist_sum, size_int n) {
 
 
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
-        float res = device_weights[tid] * ((dist[tid] / dist_sum) + 1.0 / (cluster_weights[assign[n]] * cluster_size[assign[tid]]));
+        float res = device_weights[tid] * ((dist[tid] / dist_sum) + 1.0 / cluster_weights[assign[tid]]);
         sigma[tid] = res; 
     }
 }
-
 
 __global__ void _compute_prob_x(float* sigma_x, float* prob_x, float sigma_sum, size_int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -226,22 +239,20 @@ _compute_sigma(float* points,
    
     //Allocate CPU memory
     float dist[n];
+    float weighted_dist[n];
     float sigma[n];
     unsigned int assign[n];
-    size_int cluster_size[n_cluster];
     float cluster_weights[n_cluster];
     float dist_sum; // todo, try [long double] type
     float sigma_sum;
 
     //Initialize cluster_size
     for(int i=0; i<n_cluster; i++){
-        cluster_size[i] = 0;
         cluster_weights[i] = 0.0;
     }
 
     //Allocate GPU memory
-    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_data_weights, *d_centers, *d_weights, *d_cluster_weights;
-    size_int *d_cluster_size;
+    float *d_dist, *d_sigma, *d_prob_x, *d_points, *d_data_weights, *d_centers, *d_weights, *d_cluster_weights, *d_weighted_dist;
     unsigned int *d_assign;
 
     cudaMalloc((void**)&d_dist, sizeof(float) * n);
@@ -251,7 +262,7 @@ _compute_sigma(float* points,
     cudaMalloc((void**)&d_centers, sizeof(float) * n_cluster * dimension);
     cudaMalloc((void**)&d_prob_x, sizeof(float) * n);
     cudaMalloc((void**)&d_weights, sizeof(float) * n);
-    cudaMalloc((void**)&d_cluster_size, sizeof(size_int) * n_cluster);
+    cudaMalloc((void**)&d_weighted_dist, sizeof(float) * n);
     cudaMalloc((void**)&d_cluster_weights, sizeof(float) * n_cluster);
     cudaMalloc((void**)&d_assign, sizeof(unsigned int) * n);
 
@@ -270,18 +281,20 @@ _compute_sigma(float* points,
     cudaMemcpy(assign, d_assign, n * sizeof(float), cudaMemcpyDeviceToHost);
     
     for(int i=0; i<n; i++){
-    	cluster_size[assign[i]] += 1;
         cluster_weights[assign[i]] += data_weights[i];
     }
 
-    cudaMemcpy(d_cluster_size, cluster_size, n_cluster * sizeof(size_int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_cluster_weights, cluster_weights, n_cluster * sizeof(float), cudaMemcpyHostToDevice);
+    
+    //Compute the weighted dist
+    vector_multiply<<<grid_size, block_size>>>(d_data_weights, d_dist, d_weighted_dist, n);
+    cudaMemcpy(weighted_dist, d_weighted_dist, n * sizeof(float), cudaMemcpyDeviceToHost);
 
-    //Using thrust library to get the sum of dist
-    thrust::device_vector<float> device_dist(dist, dist + n);
+    //Using thrust library to get the sum of weighted dist
+    thrust::device_vector<float> device_dist(weighted_dist, weighted_dist + n);
     dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
-
-    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_data_weights, d_sigma, d_assign, d_cluster_size, d_cluster_weights, dist_sum, n);
+    
+    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_data_weights, d_sigma, d_assign, d_cluster_weights, dist_sum, n);
     
     cudaMemcpy(sigma, d_sigma, n * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -299,9 +312,9 @@ _compute_sigma(float* points,
     CHECK(cudaFree(d_points));
     CHECK(cudaFree(d_centers));
     CHECK(cudaFree(d_dist)); 
+    CHECK(cudaFree(d_weighted_dist));
     CHECK(cudaFree(d_prob_x));
     CHECK(cudaFree(d_sigma));
-    CHECK(cudaFree(d_cluster_size));
     CHECK(cudaFree(d_cluster_weights));
     CHECK(cudaFree(d_assign));
     CHECK(cudaFree(d_weights));
@@ -328,7 +341,7 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
     copy(data_weights.begin(), data_weights.end(), host_weights);
     
     float centers[n_cluster * dimension];
-    k_means_pp_init_cu(host_points, n,centers, n_cluster, dimension);
+    k_means_pp_init_cu(host_points, host_weights, n,centers, n_cluster, dimension);
 
     //thrust::device_vector<float> prob_x;
     float prob_x[n];

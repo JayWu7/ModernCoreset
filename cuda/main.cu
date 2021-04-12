@@ -61,7 +61,7 @@ int main(){
     vector<vector<float>> v = coreset.GetValues();
     vector<float> w = coreset.GetWeights();
     
-    /*
+    
     for(int i=0; i<n_coreset; i++){
         for(int j=0; j<dimension; j++){
 	    cout<<v[i][j]<<" ";
@@ -71,7 +71,7 @@ int main(){
     
     for(int i=0; i<n_coreset; i++){
         cout<<w[i]<<endl;
-    }*/
+    }
 
 
     return 0;
