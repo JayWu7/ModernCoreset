@@ -94,6 +94,9 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
     if (n_cluster < 1) {
         throw "n_cluster, the number of clusters should at least greater than 1.";
     }
+    if (n_cluster > size) {
+        throw "n_cluster, the number of clusters should not greater than the size of whole points.";
+    }
 
     //thrust::device_vector<float> centers(n_cluster * dimension); // 1 d
     //size_int size = points.size() / dimension;
@@ -338,7 +341,7 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
         throw "Setting size of coreset is greater or equal to the original data size, please alter it";
     }
 
-    coreset::Points coreset(n_coreset, dimension); //define coreset class
+    coreset::Points coreset(n_coreset, dimension); //define coreset object
 
     float host_points[data_size];
     copy(points.begin(), points.end(), host_points);

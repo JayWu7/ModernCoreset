@@ -81,7 +81,6 @@ namespace coreset {
         }
     }
     
-    /*
     void Points::AddPoints(vector<vector<float> > values, vector<float> weights) {
         if (this->dimension != values[0].size())
             throw ("Please add the points with same dimension %d as current points", this->dimension);
@@ -99,7 +98,7 @@ namespace coreset {
         }
 
         this->size += values.size();
-    }*/
+    }
 
     void Points::SetWeights(vector<float> weights) {
         if (weights.size() != this->size){
