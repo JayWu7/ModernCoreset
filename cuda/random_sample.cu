@@ -78,7 +78,8 @@ void random_generator(unsigned int N, float *cpu_nums)
 
 void random_weight_sample_cuda(unsigned int N, size_int *sample_idx, float *weights, size_int n){
     //Compute the prefix sum of weights
-    thrust::inclusive_scan(weights, weights + n, weights); // in-place scan
+    float prefix_sum_weights[n]; 
+    thrust::inclusive_scan(weights, weights + n, prefix_sum_weights); // out-place scan
 
     // Generate N random numbers, between (0,1]
     curandState_t* states;
@@ -100,7 +101,7 @@ void random_weight_sample_cuda(unsigned int N, size_int *sample_idx, float *weig
     cudaMalloc((void**) &d_sample_idx, N * sizeof(size_int));
 
     //copy weights array to d_weights
-    cudaMemcpy(d_weights, weights, sizeof(float) * n, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_weights, prefix_sum_weights, sizeof(float) * n, cudaMemcpyHostToDevice);
 
     int block_size = 256;
     int grid_size = (N + block_size - 1)/block_size;  // ensure that we call enough thread

@@ -98,17 +98,22 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
     //thrust::device_vector<float> centers(n_cluster * dimension); // 1 d
     //size_int size = points.size() / dimension;
     //Allocate CPU memory
-    vector<float> tmp_dist(size, FLOAT_MAX_VALUE);
+    //vector<float> tmp_dist(size, FLOAT_MAX_VALUE);
     float dist[size];
-    copy(tmp_dist.begin(), tmp_dist.end(), dist);
+    float weighted_dist[size];
+    for (int i=0; i<size; i++){    // initialize the dist array with the max float value
+        dist[i] = FLOAT_MAX_VALUE;
+    }
+    //copy(tmp_dist.begin(), tmp_dist.end(), dist);
 
     float weights[size];
     float dist_sum; // todo, try [long double] type
     //Allocate GPU memory
     
-    float *d_dist, *d_weights, *d_points, *d_centers, *d_data_weights;
+    float *d_dist, *d_weights, *d_points, *d_centers, *d_data_weights, *d_weighted_dist;
 
     CHECK(cudaMalloc((void**)&d_dist, sizeof(float) * size));
+    CHECK(cudaMalloc((void**)&d_weighted_dist, sizeof(float) * size));
     CHECK(cudaMalloc((void**)&d_weights, sizeof(float) * size));
     CHECK(cudaMalloc((void**)&d_data_weights, sizeof(float) * size));
     CHECK(cudaMalloc((void**)&d_points, sizeof(float) * size * dimension));
@@ -144,11 +149,11 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
 	//Run kernel
         _min_dist<<<grid_size, block_size>>>(d_centers, center_start_id, d_points, d_dist, size, dimension);
         //Time the point weights with it's dist
-        vector_multiply<<<grid_size, block_size>>>(d_dist, d_data_weights, d_dist, size);
+        vector_multiply<<<grid_size, block_size>>>(d_dist, d_data_weights, d_weighted_dist, size);
 	//copy d_dist back to CPU
-	cudaMemcpy(dist, d_dist, size * sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(weighted_dist, d_weighted_dist, size * sizeof(float), cudaMemcpyDeviceToHost);
 	//Using thrust library to get the sum
-	thrust::device_vector<float> device_dist(dist, dist + size);
+	thrust::device_vector<float> device_dist(weighted_dist, weighted_dist + size);
         
 	dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
 	// Run kernel
@@ -329,7 +334,7 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
     size_int n = points.size() / dimension;
     size_int data_size = points.size();
 
-    if (data_size < n_coreset) {
+    if (n < n_coreset) {
         throw "Setting size of coreset is greater or equal to the original data size, please alter it";
     }
 
