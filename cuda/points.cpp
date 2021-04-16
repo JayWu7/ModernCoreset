@@ -82,11 +82,13 @@ namespace coreset {
     }
     
     void Points::AddPoints(vector<vector<float> > values, vector<float> weights) {
+	if (this->values.empty())  //Right now, it's empty in the points object
+	    this->dimension = values[0].size();
+
         if (this->dimension != values[0].size())
             throw ("Please add the points with same dimension %d as current points", this->dimension);
 
         this->values.insert(this->values.end(), values.begin(), values.end());
-
         if (weights.empty()){
             this->weights.insert(this->weights.end(), values.size(), 1.0);
         }

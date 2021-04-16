@@ -350,7 +350,6 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
     
     float centers[n_cluster * dimension];
     k_means_pp_init_cu(host_points, host_weights, n,centers, n_cluster, dimension);
-
     //thrust::device_vector<float> prob_x;
     float prob_x[n];
     float weights[n];
@@ -360,7 +359,6 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
     size_int sample_idx[n_coreset];
 
     random_weight_sample_cuda(n_coreset, sample_idx, prob_x, n); // sample coreset
-    
     //select the samples and weights by samples index
     vector<vector<float> > samples(n_coreset);
     vector<float> samples_weights(n_coreset);

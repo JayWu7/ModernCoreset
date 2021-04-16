@@ -6,7 +6,7 @@
 #include "kmeans.cpp"
 #include "dataloader.h"
 #include "dataloader.cpp"
-#include "coreset.cu"
+#include "mr_coreset.cu"
 #include <iostream>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -56,8 +56,8 @@ int main(){
     unsigned int n_coreset = 20;
     coreset::Points coreset(n_coreset, dimension);
 
-    coreset = compute_coreset(data, data_weights, dimension, n_cluster, n_coreset);
-    
+    //coreset = compute_coreset(data, data_weights, dimension, n_cluster, n_coreset);
+    coreset = compute_coreset_mr(data, data_weights, dimension, n_cluster, n_coreset, 30);
     vector<vector<float>> v = coreset.GetValues();
     vector<float> w = coreset.GetWeights();
     
