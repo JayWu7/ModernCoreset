@@ -78,7 +78,7 @@ __global__ void _min_dist(float* centers, unsigned int center_id,
     }
 }
 
-
+/*
 __global__ void
 _calculate_weights(float dist_sum, float* weights, float* dist,
                    size_int n) {
@@ -86,6 +86,15 @@ _calculate_weights(float dist_sum, float* weights, float* dist,
 
     if (tid < n)
         weights[tid] = dist[tid] / dist_sum;
+}*/
+
+__global__ void
+normalize(float* outputs, float* values, float values_sum,
+		 size_int n) {
+     int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+     if (tid < n)
+         outputs[tid] = values[tid] / values_sum;
 }
 
 
@@ -110,7 +119,7 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
     //copy(tmp_dist.begin(), tmp_dist.end(), dist);
 
     float weights[size];
-    float dist_sum; // todo, try [long double] type
+    float weighted_dist_sum; // todo, try [long double] type
     //Allocate GPU memory
     
     float *d_dist, *d_weights, *d_points, *d_centers, *d_data_weights, *d_weighted_dist;
@@ -143,7 +152,7 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
     
     int cur_center_index;
     for (int i = 0; i < n_cluster-1; i++) { 
-        dist_sum = 0.0;
+        weighted_dist_sum = 0.0;
         // launching kernel
         unsigned int center_start_id = i * dimension;
         
@@ -158,9 +167,9 @@ void k_means_pp_init_cu(float *points, float *data_weights, size_int size, float
 	//Using thrust library to get the sum
 	thrust::device_vector<float> device_dist(weighted_dist, weighted_dist + size);
         
-	dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
+	weighted_dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
 	// Run kernel
-        _calculate_weights<<<grid_size, block_size>>>(dist_sum, d_weights, d_dist, size);
+        normalize<<<grid_size, block_size>>>(d_weights, d_weighted_dist, weighted_dist_sum, size);
 	//copy d_weights back to CPU
 	
 	CHECK(cudaMemcpy(weights, d_weights, size * sizeof(float), cudaMemcpyDeviceToHost));
@@ -222,13 +231,14 @@ __global__ void _compute_sigma_x(float* dist, float* device_weights, float* sigm
     }
 }
 
+/*
 __global__ void _compute_prob_x(float* sigma_x, float* prob_x, float sigma_sum, size_int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < n) {
         prob_x[tid] = sigma_x[tid] / sigma_sum; 
     }
 }
-
+*/
 
 __global__ void _compute_weights(float* prob_x, float* device_weights, float* weight_x, size_int n, size_int n_coreset) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -251,7 +261,7 @@ _compute_sigma(float* points,
     float sigma[n];
     unsigned int assign[n];
     float cluster_weights[n_cluster];
-    float dist_sum; // todo, try [long double] type
+    float weighted_dist_sum; // todo, try [long double] type
     float sigma_sum;
 
     //Initialize cluster_size
@@ -300,16 +310,16 @@ _compute_sigma(float* points,
 
     //Using thrust library to get the sum of weighted dist
     thrust::device_vector<float> device_dist(weighted_dist, weighted_dist + n);
-    dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
+    weighted_dist_sum = thrust::reduce(device_dist.begin(), device_dist.end(), (float) 0, thrust::plus<float>());
     
-    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_data_weights, d_sigma, d_assign, d_cluster_weights, dist_sum, n);
+    _compute_sigma_x<<<grid_size, block_size>>>(d_dist, d_data_weights, d_sigma, d_assign, d_cluster_weights, weighted_dist_sum, n);
     
     cudaMemcpy(sigma, d_sigma, n * sizeof(float), cudaMemcpyDeviceToHost);
 
     //Using thrust library to get the sum of sigma
     thrust::device_vector<float> device_sigma(sigma, sigma + n);
     sigma_sum = thrust::reduce(device_sigma.begin(), device_sigma.end(), (float) 0, thrust::plus<float>());
-    _compute_prob_x<<<grid_size, block_size>>>(d_sigma, d_prob_x, sigma_sum, n);  
+    normalize<<<grid_size, block_size>>>(d_prob_x, d_sigma, sigma_sum, n);  
     
     _compute_weights<<<grid_size, block_size>>>(d_prob_x, d_data_weights, d_weights, n, n_coreset);
     //copy d_weights back to CPU
