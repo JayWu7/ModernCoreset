@@ -32,6 +32,8 @@ namespace coreset{
 
         void FillPoints(vector<vector<float> > values, vector<float> weights = vector<float>());
 
+	void FillPoints(vector<float> values, vector<float> weights = vector<float>());
+
         void AddPoints(vector<vector<float> > values, vector<float> weights = vector<float>());
 
         void SetWeights(vector<float> weights);
@@ -43,6 +45,25 @@ namespace coreset{
         unsigned int Dimension();
 
     };
+
+
+    class FlatPoints {
+    	private:
+		size_int size;
+       		unsigned int dimension;
+       		vector<float> values;
+	        vector<float> weights;
+   	 public:
+		FlatPoints();
+		FlatPoints(size_int size, unsigned int dimension);
+		unsigned long int Size();
+		unsigned int Dimension();
+		vector<float>  GetValues();
+		vector<float> GetWeights();
+		void FillPoints(vector<float> values, vector<float> weights = vector<float>());
+		void AddPoints(unsigned int dimension, vector<float> values, vector<float> weights = vector<float>() );
+    };
+
 }
 
 #endif //MODERNCORESET_CUDA_POINTS_H

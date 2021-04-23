@@ -390,3 +390,52 @@ compute_coreset(vector<float> &points, vector<float> &data_weights, unsigned int
     return coreset;
 }
 
+
+// Compute coreset function, return the FlatPoints object
+coreset::FlatPoints
+compute_coreset_flat(vector<float> &points, vector<float> &data_weights, unsigned int dimension, unsigned int n_cluster, size_int n_coreset) {
+    size_int n = points.size() / dimension;
+    size_int data_size = points.size();
+
+    if (n < n_coreset) {
+        throw "Setting size of coreset is greater or equal to the original data size, please alter it";
+    }
+
+    float host_points[data_size];
+    copy(points.begin(), points.end(), host_points);
+    float host_weights[n];
+    copy(data_weights.begin(), data_weights.end(), host_weights);
+
+    float centers[n_cluster * dimension];
+    k_means_pp_init_cu(host_points, host_weights, n,centers, n_cluster, dimension);
+    //thrust::device_vector<float> prob_x;
+    float prob_x[n];
+    float weights[n];
+
+    _compute_sigma(host_points, host_weights, centers, n, prob_x, weights, n_cluster, dimension, n_coreset);
+
+    size_int sample_idx[n_coreset];
+
+    random_weight_sample_cuda(n_coreset, sample_idx, prob_x, n); // sample coreset
+
+    //select the samples and weights by samples index
+    vector<float> samples(n_coreset * dimension);
+    vector<float> samples_weights(n_coreset);
+    
+    size_int ind = 0;
+    for(int i=0; i<n_coreset; i++){
+        size_int sid = sample_idx[i];
+        size_int data_start_id = sid * dimension;
+
+        for(int j=0; j<dimension; j++){
+                samples[ind] = host_points[data_start_id + j];
+		ind ++;
+        }
+
+        samples_weights[i]=weights[sid];
+    }
+    //Using Point object to store the coreset
+    coreset::FlatPoints coreset(n_coreset, dimension); //define coreset object
+    coreset.FillPoints(samples, samples_weights);
+    return coreset;
+}

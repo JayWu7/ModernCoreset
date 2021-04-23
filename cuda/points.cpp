@@ -5,6 +5,7 @@
 #include "points.h"
 using namespace std;
 
+
 namespace coreset {
 
     Points::Points() {
@@ -80,6 +81,29 @@ namespace coreset {
             this->weights = weights;
         }
     }
+
+
+    void Points::FillPoints(vector<float> values, vector<float> weights) {
+        if (this->size != values.size() / this->dimension)
+            throw ("Please input the values with the shape of %d,%d.", this->size, this->dimension);
+        
+        size_int ind = 0;	
+       	for(int i=0; i < this->size; i++){
+             for(int j=0; j<this->dimension; j++){
+                 this->values[i][j] = values[ind];
+		 ind++;
+             }
+        } 
+        if (weights.empty()) {
+            this->weights = vector<float>(this->size, 1.0);
+        } else if (this->size != weights.size()) {
+            throw ("Please input the weights with the length of %d.", this->size);
+        }
+        else{
+            this->weights = weights;
+        }
+    }
+
     
     void Points::AddPoints(vector<vector<float> > values, vector<float> weights) {
 	if (this->values.empty())  //Right now, it's empty in the points object
@@ -116,6 +140,77 @@ namespace coreset {
     vector<float> Points::GetWeights() {
         return this->weights;
     }
+
+    // FlatPoints Functions  
+    FlatPoints::FlatPoints() {
+        this->size = 0;
+        this->dimension = 0;
+        this->values = vector<float> ();
+        this->weights = vector<float> ();
+    }
+
+
+    FlatPoints::FlatPoints(size_int size, unsigned int dimension) {
+        this->size = size;
+        this->dimension = dimension;
+        this->values = vector<float> (size * dimension, 0.0);   //Flat values vector
+        this->weights = vector<float>(size);
+    }
+
+    vector<float>FlatPoints::GetValues() {
+         return this->values;
+    }
+
+    vector<float> FlatPoints::GetWeights() {
+         return this->weights;
+    }
+
+    unsigned long int FlatPoints::Size() {
+          return this->size;
+    }
+
+    unsigned int FlatPoints::Dimension() {
+        return this->dimension;
+    }
+
+    void FlatPoints::FillPoints(vector<float> values, vector<float> weights) {
+        if (this->size != values.size() / this->dimension)
+            throw ("Please input the values with the shape of %d,%d.", this->size, this->dimension);
+	this->values = values;
+        if (weights.empty()) {
+            this->weights = vector<float>(this->size, 1.0);
+        } else if (this->size != weights.size()) {
+            throw ("Please input the weights with the length of %d.", this->size);
+        }
+        else{
+            this->weights = weights;
+        }
+    }
+
+
+    void FlatPoints::AddPoints(unsigned int dimension, vector<float> values, vector<float> weights) {
+        if (this->values.empty()){  //Right now, it's empty in the points object
+            this->dimension = dimension;
+	}
+
+        if (this->dimension != dimension)
+            throw ("Please add the points with same dimension %d as current points", this->dimension);
+        size_int size = values.size() / dimension;
+        this->values.insert(this->values.end(), values.begin(), values.end());
+        if (weights.empty()){
+            this->weights.insert(this->weights.end(), size, 1.0);
+        }
+        else if (size != weights.size()){
+            throw "The new values and weights are not in the same length.";
+        }
+        else{
+            this->weights.insert(this->weights.end(), weights.begin(), weights.end());
+        }
+
+        this->size += size;
+    }
+
+
 
 }
 
