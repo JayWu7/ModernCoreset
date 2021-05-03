@@ -2,13 +2,13 @@ import os
 import shutil
 import urllib.request as request
 import zipfile
-import pandas as pd
 import numpy as np
+import pandas as pd
 import requests
 from lxml import etree
 import csv
 from tqdm import tqdm
-import numpy as np
+
 
 # Data list, you can add your data that just follow the same typing forms: name: url
 data_list = {
@@ -144,6 +144,11 @@ def write_osm_to_np(osm_path, out_path):
     assert type(osm_data).__module__ == 'numpy', 'Please input numpy array as data to conduct the evaluation'
     np.save(out_path, osm_data)
 
+
+def convert_np_to_csv(np_path, csv_path):
+    assert os.path.exists(np_path), 'Numpy binary file doesn\' exist!'
+    array = np.load(np_path)
+    pd.DataFrame(array).to_csv(csv_path)
 
 
 if __name__ == '__main__':
