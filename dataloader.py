@@ -61,7 +61,7 @@ def loader(filename='Activity recognition exp', specific_file=None, sep=','):
     if specific_file:  # When filename is a directory not a data file.
         filename = os.path.join(filename, specific_file)
     filepath = os.path.join('./data', filename)
-    data = pd.read_csv(filepath, sep=sep)
+    data = pd.read_csv(filepath, sep=sep, index_col=0)
     nm_data = data_filter(data, filepath)
     return nm_data.to_numpy()
 
@@ -152,7 +152,7 @@ def convert_np_to_csv(np_path, csv_path):
 
 
 if __name__ == '__main__':
-    #data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
+    data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
     # print(data.shape)
     # print(sample(data))
     # url = 'http://data.gdeltproject.org/gkg/index.html'
@@ -164,5 +164,5 @@ if __name__ == '__main__':
     # print(data[:10])
     # print(data.shape)
     #download_osm('GB', 2, './data/OSM/de_osm.csv')
-    data = loader(filename='hayes-roth.csv')
+    #data = loader(filename='hayes-roth.csv')
     print(data)
