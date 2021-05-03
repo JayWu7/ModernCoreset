@@ -53,4 +53,4 @@ def evaluate_3():
 if __name__ == '__main__':
     # evaluate_1()
     # evaluate_2()
-    evaluate_3()
+    evaluate_1()
