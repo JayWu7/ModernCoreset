@@ -30,7 +30,8 @@ def coreset_evaluate_kmeans(data):
 
 def evaluate_1():
     data = loader(filename='Activity recognition exp', specific_file='Watch_gyroscope.csv')
-    data = sample(data, size=100000)
+    # data = sample(data, size=100000)
+    data = data[:100000]
     coreset_evaluate_kmeans(data)
 
 

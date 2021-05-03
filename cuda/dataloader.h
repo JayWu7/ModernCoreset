@@ -32,7 +32,11 @@ template <class T>
 
         vector<vector<T> > ReadCsv(string filepath, char sep = ',');
 
+        void WriteCsv(string out_path, vector<vector<T> > points);
+
         vector<T> ReadCsv_1D(string filepath, char sep = ',');  // Read data into 1-d format
+
+        void WriteCsv_1D(string out_path, vector<T> points, unsigned int dimension = 1); // Write the 1-d format data
 
         string PathJoin(string path, string file, char sep = '/');
 

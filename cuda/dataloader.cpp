@@ -76,6 +76,31 @@ namespace coreset {
         return data;
     }
 
+    template<class T>
+    void DataLoader<T>::WriteCsv(string filepath, vector<vector<T> > points) {
+        ofstream fp(filepath);
+        size_t length = points.size();
+        unsigned int dimension = points[0].size();
+        for (int i=0; i<length; i++){
+            for (int j=0; j<dimension - 1; j++)
+                fp << points[i][j] <<',';
+            
+            fp << points[i][dimension - 1] << '\n';
+        }
+    }
+
+    template<class T>
+    void DataLoader<T>::WriteCsv_1D(string filepath, vector<T> points, unsigned int dimension = 1) {
+        ofstream fp(filepath);
+        size_t length = points.size() / dimension;
+        for (int i=0; i<length; i++){
+            size_t start_index = i * dimension;
+            for (int j=0; j<dimension - 1; j++)
+                fp << points[start_index + j] <<',';
+            fp << points[start_index + dimension - 1] << '\n';
+        }
+    }
+
 
     template<class T>
     vector<vector<T> > DataLoader<T>::Loader(string filename, char sep, string file_type) {

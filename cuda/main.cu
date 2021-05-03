@@ -62,6 +62,11 @@ int main(){
     coreset = compute_coreset(data, data_weights, dimension, n_cluster, n_coreset);
     end = clock();
     cout<<"time = "<<double(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
+
+    //Write the output coreset to csv file
+    WriteCsv("../output/coreset_v.csv", coreset.GetValues());
+    WriteCsv_1D("../output/coreset_w.csv", coreset.GetWeights());
+
     //coreset = compute_coreset_mr(data, data_weights, dimension, n_cluster, n_coreset, 30);
    /*
     vector<float> v = coreset.GetValues();
