@@ -3,9 +3,10 @@ from cuml import KMeans
 import cudf
 import numpy as np
 import pandas as pd
-from dataloader import loader
+from dataloader import loader, sample
 from tools import write_list
 import dask_cudf
+
 
 def np2cudf(df):
     # convert numpy array to cuDF dataframe
@@ -31,7 +32,7 @@ def cuml_kmeans(raw_data, n_clusters=2):
     end_time = time.time()
 
     cost_time = end_time - start_time
-    #print("Current data shape:{}, cost time:{}".format(raw_data.shape, cost_time))
+    print("Current data shape:{}, cost time:{}".format(raw_data.shape, cost_time))
 
     print("labels:")
     print(kmeans_float.labels_)
@@ -39,6 +40,35 @@ def cuml_kmeans(raw_data, n_clusters=2):
     print(kmeans_float.cluster_centers_)
 
     return kmeans_float, cost_time
+
+
+def cuml_kmeans_csv(csv_data_path, n_clusters=2):
+    # raw_data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
+    data = cudf.read_csv(csv_data_path, index_col=0)  #read
+    data = data.select_dtypes(include=['float64', 'int64']) #filter
+    #data = data.sample(100000)  #sample
+    data = data[:100000]  #sample
+    print("input shape:")
+    print(data.shape)
+
+    start_time = time.time()
+    print("Calling fit")
+
+    kmeans_float = KMeans(n_clusters=n_clusters)
+    kmeans_float.fit(data)
+    end_time = time.time()
+
+    cost_time = end_time - start_time
+    print("Current data shape:{}, cost time:{}".format(data.shape, cost_time))
+
+    print("labels:")
+    print(kmeans_float.labels_)
+    print("cluster_centers:")
+    print(kmeans_float.cluster_centers_)
+    print("sum of squared distances of samples to their closest cluster center")
+    print(-kmeans_float.score(data))
+    return kmeans_float, cost_time
+
 
 
 def cuml_speed_experiment(np_file, size, n_clusters=2):
@@ -75,6 +105,8 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
 
 
 if __name__ == '__main__':
-    results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
-    np.save('./data/result', np.array(results))
-    write_list(results, './data/results.txt')
+    #results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
+    #np.save('./data/result', np.array(results))
+    #write_list(results, './data/results.txt')
+    #cuml_kmeans_csv('./data/denmark-latest.csv', 30)
+    cuml_kmeans_csv('/scratch/work/wux4/thesis/ModernCoreset/data/Activity recognition exp/Watch_gyroscope.csv', 5)
