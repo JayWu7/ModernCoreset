@@ -66,8 +66,14 @@ int main(){
     //Write the output coreset to csv file
     vector<vector<float> > v = coreset.GetValues();
     vector<float> w = coreset.GetWeights();
-    dataloader.WriteCsv("../output/coreset_v.csv", v);
-    dataloader.WriteCsv_1D("../output/coreset_w.csv", w);
+
+    //Conduct the Kmeans clustering among the coreset
+    KMeans kmeans(5, "k-means++",5, 30);
+    kmeans.Fit(sampled_data);
+    cout<<kmeans.GetCost()<<endl;
+
+    // dataloader.WriteCsv("../output/coreset_v.csv", v);
+    // dataloader.WriteCsv_1D("../output/coreset_w.csv", w);
 
     //coreset = compute_coreset_mr(data, data_weights, dimension, n_cluster, n_coreset, 30);
    /*

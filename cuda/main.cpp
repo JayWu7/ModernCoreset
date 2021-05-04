@@ -18,7 +18,7 @@ int main(){
     //vector<vector<float> > sampled_data = dataloader.DataSample(data, 1000);  // sample 1000 items of data
     //cout<<data.size()<<endl;
     //cout<<data[0].size()<<endl;
-    KMeans kmeans(8, "k-means++",10, 10);
+    KMeans kmeans(5, "k-means++",0, 10);
     vector<vector<float> > init_centers = kmeans.KMeans_pp_Init(data, 5);
     
     //Test Kmeans method:

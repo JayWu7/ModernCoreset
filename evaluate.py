@@ -65,9 +65,6 @@ def test():
     print('Sum of squared distances of samples to their closest cluster center in coreset: {}'.format(cost))
     
 
-
-
-
 if __name__ == '__main__':
     # evaluate_1()
     # evaluate_2()
