@@ -90,7 +90,7 @@ namespace coreset {
     }
 
     template<class T>
-    void DataLoader<T>::WriteCsv_1D(string filepath, vector<T> points, unsigned int dimension = 1) {
+    void DataLoader<T>::WriteCsv_1D(string filepath, vector<T> points, unsigned int dimension) {
         ofstream fp(filepath);
         size_t length = points.size() / dimension;
         for (int i=0; i<length; i++){

@@ -55,7 +55,7 @@ int main(){
     vector<float> data_weights(n, 1.0);
     //k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
    
-    unsigned int n_coreset = 20000;
+    unsigned int n_coreset = 100000;
     //coreset::FlatPoints coreset(n_coreset, dimension);
     coreset::Points coreset(n_coreset, dimension);
     start = clock();
@@ -64,8 +64,10 @@ int main(){
     cout<<"time = "<<double(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 
     //Write the output coreset to csv file
-    WriteCsv("../output/coreset_v.csv", coreset.GetValues());
-    WriteCsv_1D("../output/coreset_w.csv", coreset.GetWeights());
+    vector<vector<float> > v = coreset.GetValues();
+    vector<float> w = coreset.GetWeights();
+    dataloader.WriteCsv("../output/coreset_v.csv", v);
+    dataloader.WriteCsv_1D("../output/coreset_w.csv", w);
 
     //coreset = compute_coreset_mr(data, data_weights, dimension, n_cluster, n_coreset, 30);
    /*

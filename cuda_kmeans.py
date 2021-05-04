@@ -42,12 +42,22 @@ def cuml_kmeans(raw_data, n_clusters=2):
     return kmeans_float, cost_time
 
 
-def cuml_kmeans_csv(csv_data_path, n_clusters=2):
+def cuml_kmeans_csv(csv_data_path, n_clusters=2, csv_weights_path=None, index=True, sample_size=None, header=0):
     # raw_data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
-    data = cudf.read_csv(csv_data_path, index_col=0)  #read
+    if index:
+        data = cudf.read_csv(csv_data_path, index_col=0, header=header)  #read values
+    else:
+        data = cudf.read_csv(csv_data_path, header=header)
+
+    if csv_weights_path == None:
+        weights = None
+    else:
+        weights = cudf.read_csv(csv_weights_path, header=header)
+    
     data = data.select_dtypes(include=['float64', 'int64']) #filter
     #data = data.sample(100000)  #sample
-    data = data[:100000]  #sample
+    if sample_size != None:
+        data = data[:sample_size]  #sample
     print("input shape:")
     print(data.shape)
 
@@ -55,7 +65,7 @@ def cuml_kmeans_csv(csv_data_path, n_clusters=2):
     print("Calling fit")
 
     kmeans_float = KMeans(n_clusters=n_clusters)
-    kmeans_float.fit(data)
+    kmeans_float.fit(data, sample_weight=weights)
     end_time = time.time()
 
     cost_time = end_time - start_time
@@ -67,7 +77,13 @@ def cuml_kmeans_csv(csv_data_path, n_clusters=2):
     print(kmeans_float.cluster_centers_)
     print("sum of squared distances of samples to their closest cluster center")
     print(-kmeans_float.score(data))
+    print(222222)
+    print(weights)    
+
     return kmeans_float, cost_time
+
+
+
 
 
 
@@ -108,5 +124,6 @@ if __name__ == '__main__':
     #results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
     #np.save('./data/result', np.array(results))
     #write_list(results, './data/results.txt')
-    #cuml_kmeans_csv('./data/denmark-latest.csv', 30)
-    cuml_kmeans_csv('/scratch/work/wux4/thesis/ModernCoreset/data/Activity recognition exp/Watch_gyroscope.csv', 5)
+    cuml_kmeans_csv('./data/denmark-latest.csv', 5, index=False)
+    #cuml_kmeans_csv('/scratch/work/wux4/thesis/ModernCoreset/data/Activity recognition exp/Watch_gyroscope.csv', 5)
+    cuml_kmeans_csv('./output/coreset_v.csv', 5, csv_weights_path='./output/coreset_w.csv', index=False, header=None)

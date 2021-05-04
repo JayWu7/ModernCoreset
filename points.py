@@ -27,7 +27,7 @@ class Points:
         assert values.shape == self.values.shape, 'Please input values with the shape of {}'.format(self.values.shape)
         self.values = values
         if weights is not None:
-            assert weights.shape == self.weights.shape, 'Please input weights with the shape of {}'.format(
+            assert len(weights) == len(self.weights), 'Please input weights with the shape of {}'.format(
                 self.weights.shape)
             self.set_weights(weights)
 

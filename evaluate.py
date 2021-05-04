@@ -3,7 +3,8 @@ import os
 from dataloader import loader, sample
 from points import Points
 from coreset import compute_coreset
-
+import pandas as pd
+import numpy as np
 
 def coreset_evaluate_kmeans(data):
     '''
@@ -51,7 +52,24 @@ def evaluate_3():
         lengths += len(data)
     print(lengths)
 
+
+def test():
+    data = pd.read_csv('./output/coreset_v.csv',  header=None).to_numpy()  #read values
+    weights = pd.read_csv('./output/coreset_w.csv',  header=None).to_numpy().reshape(-1)
+    print(data.shape)
+    print(weights.shape)
+    size, dim = data.shape
+    points = Points(size, dim)
+    points.fill_points(data, weights)
+    center, cost = points.kmeans_clustering(5)
+    print('Sum of squared distances of samples to their closest cluster center in coreset: {}'.format(cost))
+    
+
+
+
+
 if __name__ == '__main__':
     # evaluate_1()
     # evaluate_2()
-    evaluate_1()
+    #evaluate_1()
+    test()
