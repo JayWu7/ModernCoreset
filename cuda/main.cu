@@ -20,89 +20,52 @@ using namespace std;
 using namespace coreset;
 
 
-int main(){
-    clock_t start,end;
-    DataLoader<float> dataloader(2); //dimension = 6
-    vector<float> data = dataloader.Loader_1D("denmark-latest.csv");
-    //vector<vector<float> > sampled_data = dataloader.DataSample(data, 1000);  // sample 1000 items of data
+int main(int argc, char **argv){
+    if (argc != 6) {
+    std::cout << "Usage: ./main <csv_file_path> <coreset_size> <cluster_size> <data_dimension> <output_path>\n";
+    return EXIT_FAILURE;
+    }
     
-    /*KMeans kmeans(8, "k-means++",10, 10);
-    vector<vector<float> > init_centers = kmeans.KMeans_pp_Init(data, 5);
-    for(int i=0; i<init_centers.size(); i++){
-        vector<float> center = init_centers[i];
-	for(int j=0; j<center.size(); j++)
-	    cout<<center[j]<<" ";
-	cout<<endl;
-    }*/
+    //Obtain the parameters
+    string csv_path = argv[1];
+    size_t coreset_size = stoi(argv[2]);
+    size_t cluster_size = stoi(argv[3]);
+    unsigned int dimension = stoi(argv[4]);
+    string output_path = argv[5];
+    
+    clock_t start,end; // computing the running time
+    DataLoader<float> dataloader(dimension); //Create dataloader object
 
-    //Test Kmeans method:
-    //kmeans.Fit(sampled_data);
-    // cout<<kmeans.GetCenters().size()<<endl;
-    // cout<<kmeans.GetCost()<<endl;
-    // vector<int> labels=kmeans.GetLabel();
-    // for(int i=0; i<labels.size(); i++)
-    // {
-    //     cout<<labels[i]<<endl;
-    // }
-
-
-    //Test Coreset method:
-    //thrust::device_vector<float> device_points(data.begin(), data.end());
-    unsigned int dimension = dataloader.dimension;
-    unsigned int n_cluster = 5;
-    size_int n = data.size() / dimension; 
-    //float centers[n_cluster * dimension];
-    vector<float> data_weights(n, 1.0);
-    //k_means_pp_init_cu(points, n, centers, n_cluster, dimension);
-   
-    unsigned int n_coreset = 100000;
-    //coreset::FlatPoints coreset(n_coreset, dimension);
-    coreset::Points coreset(n_coreset, dimension);
     start = clock();
-    coreset = compute_coreset(data, data_weights, dimension, n_cluster, n_coreset);
+    
+    vector<float> data = dataloader.Loader_1D(csv_path);
     end = clock();
+    cout<<"Data loading time = "<<double(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
+
+    //Running Coreset method:
+    size_int n = data.size() / dimension; 
+    vector<float> data_weights(n, 1.0);
+   
+    coreset::Points coreset(coreset_size, dimension);
+
+    start = clock();
+    coreset = compute_coreset(data, data_weights, dimension, cluster_size, coreset_size);
+    end = clock();
+
     cout<<"time = "<<double(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 
     //Write the output coreset to csv file
+    //Get values and weights
     vector<vector<float> > v = coreset.GetValues();
     vector<float> w = coreset.GetWeights();
-
-    //Conduct the Kmeans clustering among the coreset
-    KMeans kmeans(5, "k-means++",5, 30);
-    kmeans.Fit(sampled_data);
-    cout<<kmeans.GetCost()<<endl;
-
-    // dataloader.WriteCsv("../output/coreset_v.csv", v);
-    // dataloader.WriteCsv_1D("../output/coreset_w.csv", w);
-
-    //coreset = compute_coreset_mr(data, data_weights, dimension, n_cluster, n_coreset, 30);
-   /*
-    vector<float> v = coreset.GetValues();
-    vector<float> w = coreset.GetWeights();
     
-    size_int ind = 0;
-    for(int i=0; i<n_coreset; i++){
-        for(int j=0; j<dimension; j++){
-	    cout<<v[ind]<<" ";
-	    ind ++;
-	}
-	cout<<endl;
-    }
-    
-    for(int i=0; i<n_coreset; i++){
-        cout<<w[i]<<endl;
-    }
-    */
-    /*
-    vector<vector<float> > v = coreset.GetValues();
-    vector<float> w = coreset.GetWeights();
-    for(int i=0; i<n_coreset; i++){
-	for(int j=0; j<dimension; j++){
-		cout<<v[i][j]<<" ";
-	}		
-        cout<<w[i]<<endl;
-    }*/
-    
+    //Generate file output path
+    string csv_name = csv_path.substr(csv_path.find_last_of('/') + 1);
+    string file_name = csv_name.substr(0, csv_name.find_last_of('.')); //Remove '.csv' to get file name
+    string value_path = output_path + file_name + "-coreset_v.csv";
+    string weight_path = output_path + file_name + "-coreset_w.csv";
+    dataloader.WriteCsv(value_path, v);
+    dataloader.WriteCsv_1D(weight_path, w);
 
     return 0;
 }
