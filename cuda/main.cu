@@ -22,7 +22,7 @@ using namespace coreset;
 
 int main(int argc, char **argv){
     if (argc != 6) {
-    std::cout << "Usage: ./main <csv_file_path> <coreset_size> <cluster_size> <data_dimension> <output_path>\n";
+    std::cout << "Usage: ./main <csv_file_path> <coreset_size> <cluster_size> <data_dimension> <output_path> \n";
     return EXIT_FAILURE;
     }
     
@@ -33,7 +33,7 @@ int main(int argc, char **argv){
     unsigned int dimension = stoi(argv[4]);
     string output_path = argv[5];
     
-    clock_t start,end; // computing the running time
+    clock_t start,end; //computing the running time
     DataLoader<float> dataloader(dimension); //Create dataloader object
 
     start = clock();

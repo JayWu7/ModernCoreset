@@ -11,13 +11,14 @@ source activate /home/wux4/.conda/envs/rapidsai
 base_directory=/scratch/work/wux4/thesis/ModernCoreset/data/
 output_directory=/scratch/work/wux4/thesis/ModernCoreset/output/
 
+
 #Set hyper-parameters
 
-data_name=Watch_gyroscope     #Should be stored in base_directory
-data_dimension=6
-coreset_size=10000
-cluster_size_c=10   #cluster size in generating coreset
-cluster_size=10  #kmeans cluster size
+data_name=$1  #Should be stored in base_directory
+coreset_size=$2
+data_dimension=$3
+
+cluster_size=5  #kmeans cluster size
 
 #Get the files path
 file_name=${data_name}.csv
@@ -30,17 +31,15 @@ data_labels_path=${output_directory}${data_name}-labels.csv
 coreset_centers_path=${output_directory}${data_name}-coreset_v-centers.csv
 coreset_labels_path=${output_directory}${data_name}-coreset_v-labels.csv
 
-
+#Repeat the experiments for 5 times to get the average result
+for loop in 1 2 3 4 5
+do
+echo "Experiment: ${loop} start!"
 #Generate coreset
-
-/scratch/work/wux4/thesis/ModernCoreset/cuda/main $data_path $coreset_size $cluster_size_c $data_dimension $output_directory || exit 1;
-
-
+/scratch/work/wux4/thesis/ModernCoreset/cuda/main $data_path $coreset_size $cluster_size $data_dimension $output_directory || exit 1;
 #Run cuml
-
 python cuml_evaluate.py ${data_path} ${coreset_path} ${coreset_weights_path} $cluster_size || exit 1;
-
-
 #Evaluate
 /scratch/work/wux4/thesis/ModernCoreset/cuda/evaluate ${data_path} ${data_centers_path} ${data_labels_path} ${coreset_path} ${coreset_weights_path} ${coreset_centers_path} ${coreset_labels_path} || exit 1;        
+done
 

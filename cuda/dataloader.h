@@ -33,6 +33,10 @@ template <class T>
         vector<vector<T> > ReadCsv(string filepath, char sep = ',');
 
         void WriteCsv(string out_path, vector<vector<T> > points);
+	
+	void NormCsv_1D(vector<T> &data);
+	void NormCsv(vector<vector<T> > &data);
+	void NormCsv(string filepath, char sep = ',');
 
         vector<T> ReadCsv_1D(string filepath, char sep = ',');  // Read data into 1-d format
 

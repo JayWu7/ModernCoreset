@@ -46,9 +46,9 @@ def cuml_kmeans(raw_data, n_clusters=2):
 def cuml_kmeans_csv(csv_data_path, n_clusters=2, csv_weights_path=None, index=False, sample_size=None, header=0, store_path="./output"):
     filename = csv_data_path.split('/')[-1][:-4]  #get the file name
     if index:
-        data = cudf.read_csv(csv_data_path, index_col=0, header=header)  #read values
+        data = cudf.read_csv(csv_data_path, index_col=0, header=header, dtype=float)  #read values
     else:
-        data = cudf.read_csv(csv_data_path, header=header)
+        data = cudf.read_csv(csv_data_path, header=header, dtype=float)
 
     if csv_weights_path == None:
         weights = None
