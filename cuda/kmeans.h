@@ -2,6 +2,7 @@
 // Created by Xiaobo Wu on 2021/1/25.
 //
 #include <algorithm>
+#include <math.h>
 #include <cstdlib>
 #include <limits>
 #include <random>

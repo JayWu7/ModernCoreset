@@ -4,6 +4,9 @@
 
 #include "dataloader.h"
 #include <iostream>
+#include <algorithm>
+#include <limits>
+
 
 using namespace std;
 
@@ -11,6 +14,7 @@ namespace coreset {
 
     template<class T>
     DataLoader<T>::DataLoader() {
+        this->dimension = 0;
         cout << "Dataloader object is being created" << endl;
     }
 
@@ -73,7 +77,40 @@ namespace coreset {
             data_line.push_back(stringToNum(value)); // add the last number
             data.push_back(data_line); // add to data vector
         }
+        fp.close();
         return data;
+    }
+    
+    //Normalize data
+    template<class T>   
+    void DataLoader<T>::NormCsv(string filepath, char sep){
+	vector<vector<T> > data = this->ReadCsv(filepath);
+
+        unsigned long int le = data.size();
+        unsigned int dimension = data[0].size();
+	float float_max = numeric_limits<float>::max();
+	float float_min = numeric_limits<float>::min();
+
+        vector<float> min_value(dimension, float_max);
+        vector<float> max_value(dimension, float_min);
+
+        for(int i = 0; i < le; i++){
+                for(int j = 0; j < dimension; j++){
+                        if(data[i][j] > max_value[j]){
+                                max_value[j] = data[i][j];
+                        }else if(data[i][j] < min_value[j]){
+                                min_value[j] = data[i][j];
+                        }
+                }
+        }
+
+        for(int i = 0; i < le; i++){
+                for(int j = 0; j < dimension; j++){
+                       data[i][j] = (data[i][j] - min_value[j]) / (max_value[j] - min_value[j]);
+                }
+        }
+	
+	this->WriteCsv(filepath, data);
     }
 
     template<class T>
@@ -81,6 +118,10 @@ namespace coreset {
         ofstream fp(filepath);
         size_t length = points.size();
         unsigned int dimension = points[0].size();
+        for(int j=0; j<dimension - 1; j++){
+		fp << j <<',';
+	}
+	fp << dimension - 1 << '\n';
         for (int i=0; i<length; i++){
             for (int j=0; j<dimension - 1; j++)
                 fp << points[i][j] <<',';
@@ -93,6 +134,10 @@ namespace coreset {
     void DataLoader<T>::WriteCsv_1D(string filepath, vector<T> points, unsigned int dimension) {
         ofstream fp(filepath);
         size_t length = points.size() / dimension;
+        for(int j=0; j<dimension - 1; j++){
+                fp << j <<',';
+        }
+        fp << dimension - 1 << '\n';
         for (int i=0; i<length; i++){
             size_t start_index = i * dimension;
             for (int j=0; j<dimension - 1; j++)
@@ -103,9 +148,8 @@ namespace coreset {
 
 
     template<class T>
-    vector<vector<T> > DataLoader<T>::Loader(string filename, char sep, string file_type) {
+    vector<vector<T> > DataLoader<T>::Loader(string file_path, char sep, string file_type) {
         //ExistedCheck(filename);
-        string file_path = PathJoin("../data", filename);
         vector<vector<T> > data;
         if (file_type == "csv") {
             data = ReadCsv(file_path);
@@ -139,19 +183,53 @@ namespace coreset {
             }
             data.push_back(stringToNum(value)); // add the last number
         }
-
-        if (data.size() % this->dimension != 0){
+        if (this->dimension !=0 && data.size() % this->dimension != 0){
             throw "Dataset error! Probably somewhere have missing";
         }
-
+	fp.close();
         return data;
+    }
+
+    template<class T>
+    void DataLoader<T>::NormCsv_1D(vector<T> &data) {
+	float min_value = *min_element(data.begin(), data.end());
+        float max_value = *max_element(data.begin(), data.end());
+	
+	unsigned long int le = data.size();
+	for(int i = 0; i < le; i++){
+		data[i] = (data[i] - min_value) / (max_value - min_value);
+	}
     }
 
 
     template<class T>
-    vector<T>  DataLoader<T>::Loader_1D(string filename, char sep, string file_type) {
-        //ExistedCheck(filename);
-        string file_path = PathJoin("../data", filename);
+    void DataLoader<T>::NormCsv(vector<vector<T> > &data){
+        unsigned long int le = data.size();
+	unsigned int dimension = data[0].size();
+	
+	float min_value = data[0][0];
+	float max_value = data[0][0];
+	
+	for(int i = 0; i < le; i++){
+		for(int j = 0; j < dimension; j++){
+			if(data[i][j] > max_value){
+				max_value = data[i][j];
+			}else if(data[i][j] < min_value){
+				min_value = data[i][j];
+			}	
+		}
+	}	
+
+        for(int i = 0; i < le; i++){
+		for(int j = 0; j < dimension; j++){
+ 	               data[i][j] = (data[i][j] - min_value) / (max_value - min_value);
+		}
+        }
+    }
+
+
+    template<class T>
+    vector<T>  DataLoader<T>::Loader_1D(string file_path, char sep, string file_type) {
         vector<T> data;
         if (file_type == "csv") {
             data = ReadCsv_1D(file_path);

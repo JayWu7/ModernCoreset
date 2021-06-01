@@ -1,4 +1,5 @@
 import time
+import os
 from cuml import KMeans
 import cudf
 import numpy as np
@@ -42,49 +43,41 @@ def cuml_kmeans(raw_data, n_clusters=2):
     return kmeans_float, cost_time
 
 
-def cuml_kmeans_csv(csv_data_path, n_clusters=2, csv_weights_path=None, index=True, sample_size=None, header=0):
-    # raw_data = loader(filename='gdelt', specific_file='20200513.gkgcounts.csv', sep='\t')
+def cuml_kmeans_csv(csv_data_path, n_clusters=2, csv_weights_path=None, index=False, sample_size=None, header=0, store_path="./output"):
+    filename = csv_data_path.split('/')[-1][:-4]  #get the file name
     if index:
-        data = cudf.read_csv(csv_data_path, index_col=0, header=header)  #read values
+        data = cudf.read_csv(csv_data_path, index_col=0, header=header, dtype=float)  #read values
     else:
-        data = cudf.read_csv(csv_data_path, header=header)
+        data = cudf.read_csv(csv_data_path, header=header, dtype=float)
 
     if csv_weights_path == None:
         weights = None
     else:
         weights = cudf.read_csv(csv_weights_path, header=header)
     
-    data = data.select_dtypes(include=['float64', 'int64']) #filter
     #data = data.sample(100000)  #sample
     if sample_size != None:
         data = data[:sample_size]  #sample
-    print("input shape:")
-    print(data.shape)
 
     start_time = time.time()
-    print("Calling fit")
-
+    print("Calling kmeans fit function!")
+    
     kmeans_float = KMeans(n_clusters=n_clusters)
     kmeans_float.fit(data, sample_weight=weights)
     end_time = time.time()
 
     cost_time = end_time - start_time
-    print("Current data shape:{}, cost time:{}".format(data.shape, cost_time))
+    print("Current data shape:{}, cost time for kmeans clustering:{}".format(data.shape, cost_time))
 
-    print("labels:")
-    print(kmeans_float.labels_)
-    print("cluster_centers:")
-    print(kmeans_float.cluster_centers_)
-    print("sum of squared distances of samples to their closest cluster center")
-    print(-kmeans_float.score(data))
-    print(222222)
-    print(weights)    
+    labels = kmeans_float.labels_.to_frame()  # Get labels
+    labels_path = os.path.join(store_path, filename + '-labels' + '.csv')
+    labels.to_csv(labels_path, index=False)
+    print('Clustering result labels stored in: {}'.format(labels_path))
 
-    return kmeans_float, cost_time
-
-
-
-
+    centers = kmeans_float.cluster_centers_
+    centers_path = os.path.join(store_path, filename + '-centers' + '.csv')
+    centers.to_csv(centers_path, index=False)
+    print('Clustering centers stored in: {}'.format(centers_path))
 
 
 def cuml_speed_experiment(np_file, size, n_clusters=2):
@@ -107,12 +100,6 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
         del kmeans_obj
         print("Current data size: {}G, cost time: {}".format(n, cost_time))
         results.append([n, cost_time])
-    #except:
-     #   print('Error happened, current data size: {}G'.format(n))
-    #else:
-     #   print('Experiments conducted successfully!')
-    #finally:
-     #   print("Finished!")
 
     if int_size != size:
         results[-1][0] = round(size, 1)
@@ -120,10 +107,21 @@ def cuml_speed_experiment(np_file, size, n_clusters=2):
     return results
 
 
+def evaluate_1(data_path, coreset_path, coreset_weights_path):
+    cuml_kmeans_csv('./data/denmark-latest.csv', 5, index=False)
+    cuml_kmeans_csv('./output/coreset_v.csv', 5, csv_weights_path='./output/coreset_w.csv', index=False, header=None)
+    
+
+
+
+
 if __name__ == '__main__':
     #results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
     #np.save('./data/result', np.array(results))
     #write_list(results, './data/results.txt')
-    cuml_kmeans_csv('./data/denmark-latest.csv', 5, index=False)
+    #cuml_kmeans_csv('./data/Watch_gyroscope.csv', 50, index=False, has_non_numeric=True)
     #cuml_kmeans_csv('/scratch/work/wux4/thesis/ModernCoreset/data/Activity recognition exp/Watch_gyroscope.csv', 5)
-    cuml_kmeans_csv('./output/coreset_v.csv', 5, csv_weights_path='./output/coreset_w.csv', index=False, header=None)
+    for i in [10000,50000,100000,500000,1000000,5000000,10000000,50000000,100000000,500000000,1000000000]:
+        filepath = './data/all_{}.csv'.format(i)
+        print("************** current {}".format(i))
+        cuml_kmeans_csv(filepath, 5, index=False)

@@ -15,14 +15,15 @@
 #include <vector>
 #include <time.h>
 
+//typedef unsigned long long int size_int;
 
 using namespace std;
 using namespace coreset;
 
 
 int main(int argc, char **argv){
-    if (argc != 6) {
-    std::cout << "Usage: ./main <csv_file_path> <coreset_size> <cluster_size> <data_dimension> <output_path> \n";
+    if (argc != 7) {
+    std::cout << "Usage: ./mr_main <csv_file_path> <coreset_size> <cluster_size> <data_dimension> <output_path>  <chunk_size>\n";
     return EXIT_FAILURE;
     }
     
@@ -32,6 +33,7 @@ int main(int argc, char **argv){
     size_t cluster_size = stoi(argv[3]);
     unsigned int dimension = stoi(argv[4]);
     string output_path = argv[5];
+    size_t chunk_size = stoi(argv[6]);
     
     clock_t start,end; //computing the running time
     DataLoader<float> dataloader(dimension); //Create dataloader object
@@ -46,17 +48,17 @@ int main(int argc, char **argv){
     size_int n = data.size() / dimension; 
     vector<float> data_weights(n, 1.0);
    
-    coreset::Points coreset(coreset_size, dimension);
+    coreset::FlatPoints coreset;
 
     start = clock();
-    coreset = compute_coreset(data, data_weights, dimension, cluster_size, coreset_size);
+    coreset = compute_coreset_mr(data, data_weights, dimension, cluster_size, coreset_size, chunk_size, 0, n -1);
     end = clock();
 
     cout<<"time = "<<double(end-start)/CLOCKS_PER_SEC<<"s"<<endl;
 
     //Write the output coreset to csv file
     //Get values and weights
-    vector<vector<float> > v = coreset.GetValues();
+    vector<float> v = coreset.GetValues();
     vector<float> w = coreset.GetWeights();
     
     //Generate file output path
@@ -64,7 +66,7 @@ int main(int argc, char **argv){
     string file_name = csv_name.substr(0, csv_name.find_last_of('.')); //Remove '.csv' to get file name
     string value_path = output_path + file_name + "-coreset_v.csv";
     string weight_path = output_path + file_name + "-coreset_w.csv";
-    dataloader.WriteCsv(value_path, v);
+    dataloader.WriteCsv_1D(value_path, v, dimension);
     dataloader.WriteCsv_1D(weight_path, w);
 
     return 0;
