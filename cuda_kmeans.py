@@ -119,6 +119,9 @@ if __name__ == '__main__':
     #results = cuml_speed_experiment('./data/all-latest.npy', 28, 5)
     #np.save('./data/result', np.array(results))
     #write_list(results, './data/results.txt')
-    cuml_kmeans_csv('./data/Watch_gyroscope.csv', 50, index=False, has_non_numeric=True)
+    #cuml_kmeans_csv('./data/Watch_gyroscope.csv', 50, index=False, has_non_numeric=True)
     #cuml_kmeans_csv('/scratch/work/wux4/thesis/ModernCoreset/data/Activity recognition exp/Watch_gyroscope.csv', 5)
-    cuml_kmeans_csv('./output/coreset_v.csv', 50, csv_weights_path='./output/coreset_w.csv', index=False)
+    for i in [10000,50000,100000,500000,1000000,5000000,10000000,50000000,100000000,500000000,1000000000]:
+        filepath = './data/all_{}.csv'.format(i)
+        print("************** current {}".format(i))
+        cuml_kmeans_csv(filepath, 5, index=False)
