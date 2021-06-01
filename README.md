@@ -6,9 +6,9 @@ We implement a coreset library that can construct a small coreset for arbitrary 
 
 ## Results
 
-#### Accuracy versus coreset size
+### Accuracy versus coreset size
 
-##### a. Accuracy evaluation method:
+#### a. Accuracy evaluation method:
 
 In the accuracy evaluation, first, we use our coreset method to get the small coreset of the big original data. Then we utilize the k-means function provided in CuML on top of coreset to get k clustering centers. On the other hand, we also get k clustering centers among the original big data by the same method k-means in CuML. Finally, we compute the sum of objective values in the original data with both two sets of centers separately. Set the two objective values sums are $obj_c$ (objective values for coreset) and $obj_o$ (objective values for original data set), then we define the relative error of the coreset method:
 $$
@@ -18,36 +18,36 @@ Note that we do not use the absolute value here, which means the error can be ne
 
 We mainly conduct the experiments in the same data set with different coreset sizes to test the influence of coreset size on its accuracy. The values of coreset size that we used in this experiment are: **100, 200, 500, 800, 1000, 2000, 5000, 8000, 10000, 20000, 50000, 80000, 100000**.
 
-##### b. Data sets:
+#### b. Data sets:
 
 1. [**Heterogeneity Activity Recognition**](http://archive.ics.uci.edu/ml/datasets/heterogeneity+activity+recognition) data Set, this is a data set from the smart electrical devices like smart photos and smartwatch that aims to record the statistics of humans’ activities in the real-world context. There are four similar files in this data set, and we select the **Watch_gyroscope.csv** file in our experiment. In more detail, this file includes 3205431 points with five attributes in each point, which refers to have the dimension of ***(3205431, 5)***.
 
 2. [**US Census Data (1990)**](https://archive.ics.uci.edu/ml/datasets/US+Census+Data+(1990)) data Set, this is a high dimensional data for classification and clustering problem. In total, it has 68 different numeric attributes, and it has 2458285 points. Therefore the dimension of this data set is ***(2458285, 68)***. The principal reason for choosing this data set is to utilize its high dimension property to test the coreset performance in the high dimensional data set.
 3. [**Open Street Map**](https://en.wikipedia.org/wiki/OpenStreetMap) , which is a public repository that aims to generate and distribute accessible geographic data for the whole world. Basically, it supplies detailed position information, including the longitude and latitude of the places around the world.  We utilize osm data for Hong Kong, China in this experiment, which has the dimension for ***(2366214, 2)***. 
 
-
-
-##### c. Coreset accuracy:
+#### c. Coreset accuracy:
 
 For the computation of the relative error of the coreset, we repeat the same experiments five times in total, and we compute the average relative error of the coreset as the final error. We test the coreset accuracy with three different data set with relatively low, medium and high dimension that mentioned above, which refers to the dimension of 2, 5 and 68, respectively. Note that we set the clustering size to 5 in our experiments. We plot the results as a diagram, see it below:
 
-![Coreset Relative Error Changes with the Coreset Size in data set Watch gyroscope, USCensus1990, and hk osm](/Users/jaywu/Desktop/thesis/project/ModernCoreset/results/plot_1.png)
+![Coreset Relative Error Changes with the Coreset Size in data set Watch gyroscope, USCensus1990, and hk osm](./results/plot_1.png)
 
 
 
-#### Speed of generation versus data size
+### Speed of generation versus data size
 
-##### a. Data sets:
+#### a. Data sets:
 
 We utilize the latest Open Street Map geographic data of European countries in the experiments of this evaluation. More specificly, we download and extract the osm location data for nine countries, including Finland, Sweden, Denmark, Norway, France, Germany, Netherlands, British, Poland. Then we combined this nine osm file to a single big CSV file that is in the shape of **(1156442555, 2)**. For convenience, we named this big CSV file as **all-latest.csv**. 
 
-##### b. Coreset generation speed:
+#### b. Coreset generation speed:
 
  We test the coreset generation speed along with the change of input data size. This experiment is conducted in **all-latest.csv** file, which has more than one billion points. Furthermore, the sampling strategy is used here to get the different size of sub-sets in the same file. We select the test input data size to: $ \mathbf{10^4, 5 \cdot 10^4, 10^5, 5 \cdot 10^5, 10^6, 5 \cdot 10^6, 10^7, 5 \cdot 10^7, 10^8, 5 \cdot 10^8, 10^9}$. The coreset size is fixed to 8000 since we find that the coreset size to 8000 will usually produce the nearly best result in the previous accuracy experiments. In addition, we set the clustering size to 5 just as in previous experiments. And we conduct this experiment by randomly samples different size of sub-sets in **all-latest.csv** file. The diagram of the coreset construction speed along with the growth of input data size is located below:
 
-![Coreset Construction Speed versus the size of input data](/Users/jaywu/Desktop/thesis/project/ModernCoreset/results/plot_2.png)
+![Coreset Construction Speed versus the size of input data](./results/plot_2.png)
 
-#### Merge-and-Reduce 
+
+
+### Merge-and-Reduce 
 
 The merge-and-reduce version results in oversized data (data size is over than the GPU memory) is the most significant result of our project since the main motivation for us to carry on this project is to clarify whether the coreset method can exceed the GPU memory size limitation when dealing with big data. In this experiment, we set the coreset size to N = 1000, clustering size to k = 5.
 
@@ -57,29 +57,29 @@ As a contrast, our merge-and-reduce coreset implementation can handle this size 
 
 ## Environment
 
-#### GPU and Cuda environment:
+### GPU and Cuda environment:
 
 1. Tesla P100 GPU card with Pascal architecture and 16 GB memory in our experiments.
 
 2. cuda/11.0.2
 3. using [Aalto Triton cluster](https://scicomp.aalto.fi/triton/).
 
-#### CuML environment:
+### CuML environment:
 
 1. CuML (0.17.0)
 2. see CuML installing instructions at: https://rapids.ai/start.html#rapids-release-selector
 
-#### Python environment:
+### Python environment:
 
 ```
 pip install -r requirements.txt
 ```
 
-#### 
+
 
 ## Usage
 
-##### Python implementation
+### Python implementation
 
 We build a naive Python single-thread version coreset computation method to prove that our method work.
 
@@ -137,7 +137,7 @@ python cuml_evaluate.py <data_path> <coreset_path> <coreset_weights_path> <clust
 
 
 
-##### C++/Cuda based implementation
+### Python implementation
 
 we use C++ and Cuda to implement the multi-threads parallel version coreset method; and finally we use CUDA to implement the merge-and-reduce version of coreset construction method.
 
@@ -247,7 +247,8 @@ echo "Experiment: ${loop} start!"
 done
 ```
 
-#### Contact
+
+
+## Contact
 
 xiaobo.wu@aalto.fi, or jaywu16@163.com
-
