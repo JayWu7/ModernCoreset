@@ -1,4 +1,22 @@
+certifi==2020.12.5
+chardet==4.0.0
+cycler==0.10.0
+idna==2.10
+joblib @ file:///tmp/build/80754af9/joblib_1607970656719/work
+kiwisolver==1.3.1
+lxml==4.6.2
+matplotlib==3.3.3
 numpy==1.19.4
+overpy==0.4
 pandas==1.1.4
-scikit-learn==0.23.2
-
+Pillow==8.0.1
+pyparsing==2.4.7
+python-dateutil==2.8.1
+pytz==2020.4
+requests==2.25.1
+scikit-learn @ file:///opt/concourse/worker/volumes/live/631abbad-761b-4de4-68d7-91e61a2e9b78/volume/scikit-learn_1607712367953/work
+scipy @ file:///opt/concourse/worker/volumes/live/1a36c32f-2781-4ba5-77b0-65164b818584/volume/scipy_1607617270393/work
+six==1.15.0
+threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+tqdm==4.56.0
+urllib3==1.26.2
