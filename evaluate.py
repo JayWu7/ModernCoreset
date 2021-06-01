@@ -66,7 +66,7 @@ def test():
     
 
 if __name__ == '__main__':
-    # evaluate_1()
+    evaluate_1()
     # evaluate_2()
     #evaluate_1()
-    test()
+    # test()
