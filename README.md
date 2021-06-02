@@ -137,7 +137,7 @@ python cuml_evaluate.py <data_path> <coreset_path> <coreset_weights_path> <clust
 
 
 
-### Python implementation
+### C++/Cuda and merge-and-reduce implementation
 
 we use C++ and Cuda to implement the multi-threads parallel version coreset method; and finally we use CUDA to implement the merge-and-reduce version of coreset construction method.
 
